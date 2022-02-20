@@ -14,8 +14,8 @@ const playerSchema = new mongoose.Schema({
     rating: {
         type: String
     },
-    testplayer: {
-        type: String
+    description:{
+        type:String
     }
 })
 module.exports = User.discriminator('player', playerSchema)

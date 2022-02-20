@@ -21,17 +21,12 @@ router.get('/', async function (req, res, next) {
 
 //add player
 router.post('/', multer, async (req, res) => {
+
   await User.init();
-
-
   const hashedPass = await Bcrypt.hash(req.body.password, 10)
-
   const player = new Player({
-    firstName: req.body.firstName,
-    lastName: req.body.lastName,
-    email: req.body.email,
-    password: hashedPass,
-    telNum: req.body.telNum,
+    ...req.body,
+    password: hashedPass
   })
   if (req.file != null) {
     const photoCloudinary = await cloudinary.uploader.upload(req.file.path)
@@ -44,8 +39,6 @@ router.post('/', multer, async (req, res) => {
   } catch (error) {
     return res.status(401).json(error.message)
   }
-  
-
 
   //   try {
   //       var token = new Token({ email: user.email, token: crypto.randomBytes(16).toString('hex') });

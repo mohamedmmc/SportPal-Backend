@@ -28,14 +28,13 @@ router.post ('/',multer,async (req,res) => {
   const hashedPass = await Bcrypt.hash(req.body.password,10) 
 
   const arbitre = new Arbitre({
-    firstName: req.body.firstName,
-    lastName: req.body.lastName,
-    email: req.body.email,
-    password: hashedPass,
-    telNum: req.body.telNum,
-    federation:req.body.federation
-    //picture: photoCloudinary.url
+    ...req.body,
+    password: hashedPass
   })
+  if (req.file != null) {
+    const photoCloudinary = await cloudinary.uploader.upload(req.file.path)
+    arbitre.picture = photoCloudinary.url
+  }
   const newArbitre = await arbitre.save()
   return res.status(201).json(newArbitre)
 

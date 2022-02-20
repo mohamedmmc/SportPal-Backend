@@ -27,14 +27,13 @@ router.post ('/',multer,async (req,res) => {
   const hashedPass = await Bcrypt.hash(req.body.password,10) 
 
   const complexeOwner = new ComplexeOwner({
-    firstName: req.body.firstName,
-    lastName: req.body.lastName,
-    email: req.body.email,
-    password: hashedPass,
-    telNum: req.body.telNum,
-    testcomplexe:req.body.testcomplexe
-    //picture: photoCloudinary.url
+    ...req.body,
+    password: hashedPass
   })
+  if (req.file != null) {
+    const photoCloudinary = await cloudinary.uploader.upload(req.file.path)
+    complexeOwner.picture = photoCloudinary.url
+  }
   const newComplexe = await complexeOwner.save()
   return res.status(201).json(newComplexe)
 
