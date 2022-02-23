@@ -426,7 +426,6 @@ router.get('/confirmation/:email/:token', async (req, res, next) => {
 });
 
 router.post('/forgotPassword', getUserByMail,checkToken, (req, res, next) => {
-  console.log(res.token)
   // user is not found into database
   if (!res.user) {
     return res.status(400).send({ msg: 'We were unable to find a user with that email. Make sure your Email is correct!' });
@@ -480,7 +479,42 @@ router.post('/forgotPassword', getUserByMail,checkToken, (req, res, next) => {
 
 });
 
+router.post('/resetPassword/:email/:token' ,async (req, res, next) => {
+  Token.findOne({ token: req.params.token }, function (err, token) {
+      // token is not found into database i.e. token may have expired 
+      if (!token) {
+          return res.status(400).send({ msg: 'Your verification link may have expired. Please click on resend for verify your Email.' });
+      }
+      // if token is found then check valid user 
+      else {
+          User.findOne({email: req.params.email }, async function (err, user) {
+              // not valid user
+              if (!user) {
+                  return res.status(401).send({ msg: 'We were unable to find a user for this verification. Please SignUp!' });
+              } else {
 
+                  const salt = await Bcrypt.genSalt(10);
+                  user.password = await Bcrypt.hash(req.body.Password, salt);
+                  await token.remove();
+                  user.save(function (err) {
+                      // error occur
+                      
+                      if (err) {
+                          return res.status(500).send({ msg: err.message });
+                      }
+                      // account successfully verified
+                      else {
+                          return res.status(200).json({reponse:'Your password has been successfully reset'});
+                      }
+
+                  })
+
+              }
+
+          });
+      }});
+
+  });
 
 router.delete('/:id', getUserById, async (req, res) => {
   try {
