@@ -38,9 +38,6 @@ const userSchema = new mongoose.Schema({
     },
     birthDate: {
         type: Date
-    },
-    gender: {
-        type: Date
     }
     
 

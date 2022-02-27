@@ -22,7 +22,6 @@ router.get('/', async function (req, res, next) {
 
 //Login
 router.post('/login', getUserByMail, async (req, res, next) => {
-  console.log(req.body)
   try {
     if (await Bcrypt.compare(req.body.password, res.user.password)) {
       const token = jwt.sign({ username: res.user.email }, "SECRET")
@@ -56,17 +55,7 @@ async function getUserByMail(req, res, next) {
   res.user = user
   next()
 }
-async function checkToken(req, res, next) {
-  let token
-  try {
-    token = await Token.findOne({ email: req.body.email })
 
-  } catch (error) {
-    return res.status(500).json({ reponse: error.message })
-  }
-  res.token = token
-  next()
-}
 async function getUserById(req, res, next) {
   let user
   try {
@@ -425,16 +414,12 @@ router.get('/confirmation/:email/:token', async (req, res, next) => {
 
 });
 
-router.post('/forgotPassword', getUserByMail,checkToken, (req, res, next) => {
+router.post('/forgotPassword', getUserByMail, (req, res, next) => {
+
   // user is not found into database
   if (!res.user) {
     return res.status(400).send({ msg: 'We were unable to find a user with that email. Make sure your Email is correct!' });
-  } else if (res.token){
-    return res.status(403).send({ token: res.token.token });
-
-  }
- 
-  else {
+  } else {
     var seq = (Math.floor(Math.random() * 10000) + 10000).toString().substring(1);
     var token = new Token({ email: res.user.email, token: seq });
     token.save(function (err) {
@@ -479,42 +464,7 @@ router.post('/forgotPassword', getUserByMail,checkToken, (req, res, next) => {
 
 });
 
-router.post('/resetPassword/:email/:token' ,async (req, res, next) => {
-  Token.findOne({ token: req.params.token }, function (err, token) {
-      // token is not found into database i.e. token may have expired 
-      if (!token) {
-          return res.status(400).send({ msg: 'Your verification link may have expired. Please click on resend for verify your Email.' });
-      }
-      // if token is found then check valid user 
-      else {
-          User.findOne({email: req.params.email }, async function (err, user) {
-              // not valid user
-              if (!user) {
-                  return res.status(401).send({ msg: 'We were unable to find a user for this verification. Please SignUp!' });
-              } else {
 
-                  const salt = await Bcrypt.genSalt(10);
-                  user.password = await Bcrypt.hash(req.body.Password, salt);
-                  await token.remove();
-                  user.save(function (err) {
-                      // error occur
-                      
-                      if (err) {
-                          return res.status(500).send({ msg: err.message });
-                      }
-                      // account successfully verified
-                      else {
-                          return res.status(200).json({reponse:'Your password has been successfully reset'});
-                      }
-
-                  })
-
-              }
-
-          });
-      }});
-
-  });
 
 router.delete('/:id', getUserById, async (req, res) => {
   try {
