@@ -7,13 +7,16 @@ const tournamentSchema = new mongoose.Schema({
         ref: 'match'
     }],
     winner: {
-        type: String
+        type: String,
+        default: null
     },
     prize: {
-        type: Number
+        type: Number,
+        default: null
     },
     from: {
-        type: Date
+        type: Date,
+        default: Date.now,
     },
     to: {
         type: Date

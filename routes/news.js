@@ -1,15 +1,22 @@
 const puppeteer = require('puppeteer');
+const cron = require('node-cron');
 var express = require('express');
 var router = express.Router();
-const myNews = require('../models/News')
+const myNews = require('../models/News');
+const News = require('../models/News');
 
 //Route
+
+
+//Cron scheduled every minute !!
+
+cron.schedule('* * * * *', () => {console.log("Task is running every minute " + new Date())});
 
 // Get From https://www.tennis.com/news/all-news/
 
 router.get('/Tennis', async function (req, res, next) {
     try {
-        const browser = await puppeteer.launch({ headless: false, devtools: true });
+        const browser = await puppeteer.launch({ headless: true, devtools: true });
 
         const page = await browser.newPage();
 
@@ -33,11 +40,7 @@ router.get('/Tennis', async function (req, res, next) {
 
         let count = 0
 
-
-
         for (let link in newsArticles) {
-
-
 
             let newsArticle = newsArticles[link]
 
@@ -53,19 +56,31 @@ router.get('/Tennis', async function (req, res, next) {
 
             })
 
-            console.log(articleDetails, "Ena l'article ")
-
             newsArticles[link] = { ...newsArticle, articleDetails }
 
             count++
 
-            if (count == 12) { break }
+            if (count == 8) { break }
 
+            thisNews = new News({
+                title: newsArticles[link].articleDetails.title,
+                desc: newsArticles[link].articleDetails.desc,
+                imageURL: newsArticles[link].imageURL,
+                type:'Tennis'
+            })
+
+            myNews.insertMany(thisNews).then((docs) => {
+                console.log("Multiple documents inserted to Collection");
+            }).catch((err) => {
+                console.error(err);
+            })
         }
 
         // await browser.close()
 
-        res.status(200).json(newsArticles)
+        res.status(200).json(Object.values(newsArticles))
+
+        //res.status(200).json(thisNews)
 
     } catch (error) {
         res.status(500).json({ message: error.message })
@@ -90,7 +105,7 @@ router.get('/Goalzz/tennis', async function (req, res, next) {
 
                 let i = element.querySelector('a > img')?.src.split('&')[0]
                 news.push({
-                    img: i,
+                    imageURL: i,
                     title: element.querySelector('div.inline > a > strong')?.innerText.trim(),
                     desc: element.querySelector('div.inline > p')?.innerText.trim(),
                 })
@@ -100,8 +115,13 @@ router.get('/Goalzz/tennis', async function (req, res, next) {
 
         console.log('Goalzz', news)
 
-
         await browser.close()
+
+        myNews.insertMany(news).then((docs) => {
+            console.log("Multiple documents inserted to Collection");
+        }).catch((err) => {
+            console.error(err);
+        })
 
         res.status(200).json(news)
 
@@ -127,9 +147,10 @@ router.get('/Foot24', async function (req, res, next) {
             for (element of elements) {
                 let i = element.querySelector('.dc-image-cover')?.style.getPropertyValue('background-image').split("\"")[1]
                 news.push({
-                    img: i,
+                    imageURL: i,
                     type: element.querySelector('.dc-cate')?.innerText.trim(),
                     title: element.querySelector('.dc-cate-tle')?.innerText.trim(),
+                    type: 'Football-Foot24',
                 })
             }
             return news;
@@ -138,6 +159,12 @@ router.get('/Foot24', async function (req, res, next) {
         console.log('Foot24', news)
 
         await browser.close()
+        
+        myNews.insertMany(news).then((docs) => {
+            console.log("Multiple documents inserted to Collection");
+        }).catch((err) => {
+            console.error(err);
+        })
 
         res.status(200).json(news)
 
@@ -186,6 +213,46 @@ router.get('/Koora', async function (req, res, next) {
 });
 
 
+router.get('/Koora2', async function (req, res, next) {
+    try {
+        const browser = await puppeteer.launch({ headless: true });
 
+        const page = await browser.newPage();
+        await page.goto("https://www.kooora.com/")
+
+        const news = await page.evaluate(() => {
+            let news = [];
+            let elements = document.querySelectorAll('div.newsList > ul > li')
+            for (element of elements) {
+
+                let i = element.querySelector('a > img')?.src.split('&')[0]
+                news.push({
+                    imageURL: i,
+                    title: element.querySelector('div.inline > a > strong')?.innerText.trim(),
+                    desc: element.querySelector('div.inline > p')?.innerText.trim(),
+                    type: 'Football-Koora'
+                })
+            }
+            return news;
+        });
+
+        console.log('Koora', news)
+
+        await browser.close()
+
+        myNews.insertMany(news).then((docs) => {
+            console.log("Multiple documents inserted to Collection");
+        }).catch((err) => {
+            console.error(err);
+        })
+
+        res.status(200).json(news)
+
+    } catch (error) {
+        res.status(500).json({ message: error.message })
+
+    }
+
+});
 
 module.exports = router;

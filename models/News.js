@@ -2,7 +2,7 @@ const mongoose = require('mongoose')
 
 
 const newsSchema = new mongoose.Schema({
-    img: {
+    imageURL: {
         type: String
     },
     title: {
@@ -12,9 +12,12 @@ const newsSchema = new mongoose.Schema({
         type: String
     },
     date: {
-        type: Date
-
+        type: Date,
+        default: Date.now,
     },
+    type: {
+        type: String
+    }
 })
 
-module.exports = mongoose.model('match', newsSchema)
+module.exports = mongoose.model('news', newsSchema)
