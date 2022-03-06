@@ -10,10 +10,13 @@ const mongoose = require ("mongoose")
 //var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 var playerRouter = require('./routes/player');
-var ComplexeOwnerRouter = require('./routes/complexeOwn');
+var ComplexeOwnerRouter = require('./routes/complexeOwner');
 var AdminRouter = require('./routes/admin');
 var ArbitreRouter = require('./routes/arbitre');
 var newsRouter = require('./routes/news');
+var teamRouter = require('./routes/team');
+var matchRouter = require('./routes/match');
+var tournamentRouter = require('./routes/tournament');
 
 var app = express();
 
@@ -41,6 +44,8 @@ app.use('/complexeOwner', ComplexeOwnerRouter);
 app.use('/admin', AdminRouter);
 app.use('/arbitre', ArbitreRouter);
 app.use('/news', newsRouter);
-
+app.use('/team', teamRouter);
+app.use('/match', matchRouter);
+app.use('/tournament', tournamentRouter);
 
 module.exports = app;

@@ -10,8 +10,26 @@ const News = require('../models/News');
 
 //Cron scheduled every minute !!
 
-cron.schedule('* * * * *', () => {console.log("Task is running every minute " + new Date())});
+//cron.schedule('* * * * *', () => {console.log("Task is running every minute " + new Date())});
 
+//get all news
+router.get('/', async function (req, res, next) {
+    const news = await myNews.find();
+    res.status(200).json(news)
+})
+
+//get all Tennis
+router.get('/get-Tennis', async function (req, res, next) {
+    const newsKoura = await myNews.find({ type: "Tennis" });
+    res.status(200).json({ news: newsKoura })
+})
+
+//get all Koora2
+router.get('/get-Koora2', async function (req, res, next) {
+    const newsKoura = await myNews.find({ type: "Football-Koora" });
+    res.status(200).json({ news: newsKoura })
+}
+)
 // Get From https://www.tennis.com/news/all-news/
 
 router.get('/Tennis', async function (req, res, next) {
@@ -66,7 +84,7 @@ router.get('/Tennis', async function (req, res, next) {
                 title: newsArticles[link].articleDetails.title,
                 desc: newsArticles[link].articleDetails.desc,
                 imageURL: newsArticles[link].imageURL,
-                type:'Tennis'
+                type: 'Tennis'
             })
 
             myNews.insertMany(thisNews).then((docs) => {
@@ -159,7 +177,7 @@ router.get('/Foot24', async function (req, res, next) {
         console.log('Foot24', news)
 
         await browser.close()
-        
+
         myNews.insertMany(news).then((docs) => {
             console.log("Multiple documents inserted to Collection");
         }).catch((err) => {

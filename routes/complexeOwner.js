@@ -1,51 +1,59 @@
 var express = require('express');
 var router = express.Router();
 var multer = require('../middleware/multer')
+var multerF = require('../middleware/multer-file')
 var cloudinary = require('../middleware/cloudinary')
 var User = require('../models/User')
-var Admin = require('../models/Admin')
-
+var ComplexeOwner = require('../models/ComplexeOwner')
 var Token = require('../models/Token')
 var nodemailer = require("nodemailer");
 var jwt = require('jsonwebtoken')
 var Bcrypt = require('bcrypt')
 var crypto = require('crypto')
+var Tournament = require('../models/Tournament')
+var Team = require('../models/Team')
+var Match = require('../models/Match')
 
-/* GET user not verified by id. */
-router.get('/users-not-verified/:id', getUserById, async function (req, res, next) {
+/* GET ComplexeOwner listing. */
+
+router.get('/', async function (req, res, next) {
   try {
-    const user = await res.user
-    res.json(user)
+    const complexeOwner = await User.find({ type: "complexeOwner" })
+    res.json(complexeOwner)
   } catch (error) {
     res.status(500).json({ message: error.message })
   }
 });
-/* GET users not verified */
-router.get('/users-not-verified', getUserByVerification, async function (req, res, next) {
-  try {
-    const user = await res.user
-    res.json(user)
-  } catch (error) {
-    res.status(500).json({ message: error.message })
-  }
-});
-//add admin
+
+
+/* POST ComplexeOwner. */
 router.post('/', multer, async (req, res) => {
   //await User.init();
   //const photoCloudinary = await cloudinary.uploader.upload(req.file.path)
 
   const hashedPass = await Bcrypt.hash(req.body.password, 10)
 
-  const admin = new Admin({
-    firstName: req.body.firstName,
-    lastName: req.body.lastName,
-    email: req.body.email,
-    password: hashedPass,
-    telNum: req.body.telNum,
-    //picture: photoCloudinary.url
+  const complexeOwner = new ComplexeOwner({
+    ...req.body,
+    password: hashedPass
   })
-  const newAdmin = await admin.save()
-  return res.status(201).json(newAdmin)
+  if (req.file != null) {
+
+    const photoCloudinary = await cloudinary.uploader.upload(req.file.path)
+    complexeOwner.profilePic = photoCloudinary.url
+
+    console.log(photoCloudinary)
+  }
+
+  try {
+    const newComplexe = await complexeOwner.save()
+    return res.status(201).json(newComplexe)
+  } catch (error) {
+    return res.status(400).json({ message: error.message })
+  }
+
+
+
 
 
   //   try {
@@ -286,58 +294,49 @@ router.post('/', multer, async (req, res) => {
   //   return res.status(400).json({reponse: error.message})
   // }
 })
-/* delete user by id */
-router.delete("/:id", getUserById, async (req, res) => {
+
+//add file for complexeOwner
+router.post('/file/:id', multerF, getComplexeOwner, async (req, res) => {
+  const complexeOwner = await res.complexeOwner
+  if (complexeOwner) {
+    complexeOwner.files = req.file.filename
+  }
+  console.log(req.file)
   try {
-    await res.user.remove()
-    res.json({ message: 'Deleted User' })
+    const newComplexe = await complexeOwner.save()
+    return res.status(201).json(newComplexe)
+  } catch (error) {
+    return res.status(400).json(error)
+  }
+})
+
+
+/* Deleting One */
+router.delete("/:id", getComplexeOwner, async (req, res) => {
+  try {
+    await res.complexeOwner.remove()
+    res.json({ message: 'Deleted complexe owner ' })
   } catch (error) {
     res.status(500).json({ message: error.message })
   }
 })
-/* Verifie user by id */
-router.patch("/:id", getUserByVerification, getUserById, async (req, res) => {
-  res.user.isVerified = true
+
+// MiddleWares
+
+/*Complexeowner by ID 
+*/
+async function getComplexeOwner(req, res, next) {
+  let complexeOwner
   try {
-    const updatedUser = await res.user.save()
-    console.log(updatedUser.isVerified)
-    res.json({ user: updatedUser })
-  } catch (error) {
-    res.status(400).json({ message: error.message })
-
-  }
-})
-
-//middlewares 
-
-//get user by Id 
-async function getUserById(req, res, next) {
-  let user
-  try {
-    user = await User.findById(req.params.id)
-    if (user == null) {
-      return res.status(404).json({ reponse: "Utilisateur non trouve" })
+    complexeOwner = await ComplexeOwner.findById(req.params.id)
+    if (complexeOwner == null) {
+      return res.status(404).json({ message: 'Cannot find complexe owner ! ' })
     }
   } catch (error) {
-    return res.status(500).json({ reponse: error.message })
+    return res.status(500).json({ message: error.message })
   }
-  res.user = user
-  next()
-}
 
-//get users by isverified
-async function getUserByVerification(req, res, next) {
-  let user
-  try {
-    user = await User.find({ isVerified: false })
-
-    if (user == null) {
-      return res.status(404).json({ reponse: "Aucun utilisateur non verifier" })
-    }
-  } catch (error) {
-    return res.status(500).json({ reponse: error.message })
-  }
-  res.user = user
+  res.complexeOwner = complexeOwner
   next()
 }
 

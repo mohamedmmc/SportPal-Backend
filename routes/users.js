@@ -48,50 +48,20 @@ router.post('/login', getUserByMail, async (req, res, next) => {
   }
 })
 
-
-//middlewares 
-async function getUserByMail(req, res, next) {
-  let user
+// Delete one user
+router.delete('/:id', getUserById, async (req, res) => {
   try {
-    user = await User.findOne({ email: req.body.email })
-    if (user == null) {
-      return res.status(404).json({ reponse: "mail" })
-    }
+    //get all user articles and delete them
+    const user = await User.findById(res.user.id)
 
+    //delete the user
+    await res.user.remove()
+    res.json({ reponse: "Supprime avec succes" })
   } catch (error) {
-    return res.status(500).json({ reponse: error.message })
+    res.json({ erreur: error.message })
   }
-  res.user = user
-  next()
-}
-
-async function getUserById(req, res, next) {
-  let user
-  try {
-    user = await User.findById(req.params.id)
-    if (user == null) {
-      return res.status(404).json({ reponse: "Utilisateur non trouve" })
-    }
-  } catch (error) {
-    return res.status(500).json({ reponse: error.message })
-  }
-  res.user = user
-  next()
-}
-
-function authentificateToken(req, res, next) {
-  const autHeader = req.headers['authorization']
-  const token = autHeader && autHeader.split(' ')[1]
-
-  if (token == null) return res.status(401).json({ reponse: "no token" })
-
-  jwt.verify(token, "SECRET", (err, user) => {
-    if (err) return res.status(403).json({ reponse: "token invalide" })
-    req.user = user
-    next()
-  })
-
-}
+})
+// Confirme email
 router.get('/confirmation/:email/:token', async (req, res, next) => {
   Token.findOne({ token: req.params.token }, function (err, token) {
     // token is not found into database i.e. token may have expired 
@@ -422,7 +392,7 @@ router.get('/confirmation/:email/:token', async (req, res, next) => {
   });
 
 });
-
+// Forgot password
 router.post('/forgotPassword', getUserByMail, (req, res, next) => {
 
   // user is not found into database
@@ -474,18 +444,52 @@ router.post('/forgotPassword', getUserByMail, (req, res, next) => {
 });
 
 
-
-router.delete('/:id', getUserById, async (req, res) => {
+//middlewares 
+async function getUserByMail(req, res, next) {
+  let user
   try {
-    //get all user articles and delete them
-    const user = await User.findById(res.user.id)
+    user = await User.findOne({ email: req.body.email })
+    if (user == null) {
+      return res.status(404).json({ reponse: "mail" })
+    }
 
-    //delete the user
-    await res.user.remove()
-    res.json({ reponse: "Supprime avec succes" })
   } catch (error) {
-    res.json({ erreur: error.message })
+    return res.status(500).json({ reponse: error.message })
   }
-})
+  res.user = user
+  next()
+}
+
+async function getUserById(req, res, next) {
+  let user
+  try {
+    user = await User.findById(req.params.id)
+    if (user == null) {
+      return res.status(404).json({ reponse: "Utilisateur non trouve" })
+    }
+  } catch (error) {
+    return res.status(500).json({ reponse: error.message })
+  }
+  res.user = user
+  next()
+}
+
+function authentificateToken(req, res, next) {
+  const autHeader = req.headers['authorization']
+  const token = autHeader && autHeader.split(' ')[1]
+
+  if (token == null) return res.status(401).json({ reponse: "no token" })
+
+  jwt.verify(token, "SECRET", (err, user) => {
+    if (err) return res.status(403).json({ reponse: "token invalide" })
+    req.user = user
+    next()
+  })
+
+}
+
+
+
+
 
 module.exports = router;

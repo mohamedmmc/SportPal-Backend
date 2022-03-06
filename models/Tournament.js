@@ -1,8 +1,20 @@
 const mongoose = require('mongoose')
 
+//Changed on 12:20 4  mars Tournament
 
 const tournamentSchema = new mongoose.Schema({
-    match: [{
+    owner : {
+        type: mongoose.Schema.Types.ObjectId,
+        ref:'complexeOwner'
+    },
+    teams: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'team'
+    },{
+        points: Number,
+        isEliminated: Boolean
+    }],
+    matchs: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'match'
     }],
@@ -20,7 +32,8 @@ const tournamentSchema = new mongoose.Schema({
     },
     to: {
         type: Date
-    }
+    },
+
 })
 
 module.exports = mongoose.model('tournament', tournamentSchema)
