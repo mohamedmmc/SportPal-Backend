@@ -1,0 +1,108 @@
+var express = require('express');
+var router = express.Router();
+var multer = require('../middleware/multer')
+var Player = require('../models/Player')
+var Arbitre = require('../models/arbitre')
+var Team = require('../models/Team')
+var Match = require('../models/Match')
+
+/* GET All Teams. */
+router.get('/', async function (req, res, next) {
+    try {
+        const matchs = await Match.find()
+        res.json(matchs)
+    } catch (error) {
+        res.status(500).json({ message: error.message })
+    }
+});
+
+/* Creating One Team */
+router.post("/", async (req, res, next) => {
+
+    const teamA = new Team({
+        ...req.body
+    })
+    const teamB = new Team({
+        ...req.body
+    })
+    const arbitre = new Arbitre({
+        ...req.body
+    })
+    // const terrain = new Terrain({
+    //     ...req.body
+    // })
+    const match = new Match({
+        ...req.body,
+        teamA: teamA,
+        teamB: teamB,
+        arbitre: arbitre,
+    })
+    console.log("Posted Successfuly" + match)
+    try {
+        const newMatch = await match.save();
+        res.status(201).json({ newMatch });
+    } catch (error) {
+        res.status(400).json({ message: error.message })
+    }
+})
+
+/* Updating One */
+router.patch("/:id", multer, getMatch, async (req, res) => {
+    if (req.body.teamA != null) {
+        res.match.teamA = req.body.teamA
+    }
+    if (req.body.teamB != null) {
+        res.match.teamB = req.body.teamB
+    }
+    if (req.body.winner != null) {
+        res.match.winner = req.body.winner
+    }
+    if (req.body.date != null) {
+        res.match.date = req.body.date
+    }
+    if (req.body.terrain != null) {
+        res.match.terrain = req.body.terrain
+    }
+    if (req.body.arbitre != null) {
+        res.match.arbitre = req.body.arbitre
+    }
+    try {
+        const updatedMatch = await res.user.save()
+        res.json({ match: updatedMatch })
+    } catch (error) {
+        res.status(400).json({ message: error.message })
+
+    }
+})
+
+/* Deleting One */
+router.delete("/:id", getMatch, async (req, res) => {
+    try {
+        await res.match.remove()
+        res.json({ message: 'Deleted match' })
+    } catch (error) {
+        res.status(500).json({ message: error.message })
+    }
+})
+
+
+// MiddleWares
+
+/*User by ID 
+*/
+async function getMatch(req, res, next) {
+    let match
+    try {
+        match = await Match.findById(req.params.id)
+        if (match == null) {
+            return res.status(404).json({ message: 'Cannot find match' })
+        }
+    } catch (error) {
+        return res.status(500).json({ message: error.message })
+    }
+
+    res.match = match
+    next()
+}
+
+module.exports = router;

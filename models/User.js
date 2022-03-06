@@ -5,10 +5,7 @@ const baseOptions = {
     collection: 'user'
 }
 const userSchema = new mongoose.Schema({
-    firstName: {
-        type: String
-    },
-    lastName: {
+    fullname: {
         type: String
     },
     email: {
@@ -36,11 +33,8 @@ const userSchema = new mongoose.Schema({
     address: {
         type: String
     },
-    birthDate: {
-        type: Date
-    },
-    gender: {
-        type: Date
+    age: {
+        type: String
     }
     
 

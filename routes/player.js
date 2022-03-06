@@ -30,7 +30,7 @@ router.post('/', multer, async (req, res) => {
   })
   if (req.file != null) {
     const photoCloudinary = await cloudinary.uploader.upload(req.file.path)
-    player.picture = photoCloudinary.url
+    player.profilePic = photoCloudinary.url
   }
 
   try {
@@ -279,6 +279,60 @@ router.post('/', multer, async (req, res) => {
   // }
 })
 
+/* Updating One */
+router.patch("/:id", multer, getPlayer, async (req, res) => {
+  console.log(req.body)
+  if (req.body.team != null) {
+      res.player.team = req.body.team
+  }
+  if (req.body.sport != null) {
+      res.player.sport = req.body.sport
+  }
+  if (req.body.rating != null) {
+      res.player.rating = req.body.rating
+  }
+  if (req.body.description != null) {
+    res.player.description = req.body.description
+}
+  if (req.body.fullname != null) {
+    res.player.fullname = req.body.fullname
+  }
+  if (req.body.age != null) {
+    res.player.age = req.body.age
+  }
+  if (req.body.email != null) {
+    res.player.email = req.body.email
+  }
+  if (req.body.telNum != null) {
+    res.player.telNum = req.body.telNum
+  }
+  if (req.file != null) {
+    const photoCloudinary = await cloudinary.uploader.upload(req.file.path)
+    res.player.profilePic = photoCloudinary.url
+  }
+  
+  try {
+      const updatedTeam = await res.player.save()
+      res.status(200).json({ user: updatedTeam })
+  } catch (error) {
+      res.status(400).json({ message: error.message })
 
+  }
+})
 
+//middlewares
+async function getPlayer(req, res, next) {
+  let player
+  try {
+    player = await User.findById(req.params.id)
+      if (player == null) {
+          return res.status(404).json({ message: 'Cannot find player' })
+      }
+  } catch (error) {
+      return res.status(500).json({ message: error.message })
+  }
+
+  res.player = player
+  next()
+}
 module.exports = router;

@@ -19,10 +19,33 @@ router.get('/', async function (req, res, next) {
   }
 });
 
+/* Check email*/
+router.post('/checkMail', async function (req, res, next) {
+  try {
+    const user = await User.findOne({email:req.body.email})
+    if (user){
+      return res.status(200).json({reponse:"exist"})
+    }else{
+      return res.status(203).json({reponse:"good"})
+    }
+    
+  } catch (error) {
+    res.status(500).json({ message: error.message })
+  }
+});
+
+/* GET users listing. */
+router.get('/otp', async function (req, res, next) {
+  try {
+    const user = await User.find()
+    res.json(user)
+  } catch (error) {
+    res.status(500).json({ message: error.message })
+  }
+});
 
 //Login
 router.post('/login', getUserByMail, async (req, res, next) => {
-  console.log(req.body)
   try {
     if (await Bcrypt.compare(req.body.password, res.user.password)) {
       const token = jwt.sign({ username: res.user.email }, "SECRET")
@@ -40,60 +63,20 @@ router.post('/login', getUserByMail, async (req, res, next) => {
   }
 })
 
-
-//middlewares 
-async function getUserByMail(req, res, next) {
-  let user
+// Delete one user
+router.delete('/:id', getUserById, async (req, res) => {
   try {
-    user = await User.findOne({ email: req.body.email })
-    if (user == null) {
-      return res.status(404).json({ reponse: "mail" })
-    }
+    //get all user articles and delete them
+    const user = await User.findById(res.user.id)
 
+    //delete the user
+    await res.user.remove()
+    res.json({ reponse: "Supprime avec succes" })
   } catch (error) {
-    return res.status(500).json({ reponse: error.message })
+    res.json({ erreur: error.message })
   }
-  res.user = user
-  next()
-}
-async function checkToken(req, res, next) {
-  let token
-  try {
-    token = await Token.findOne({ email: req.body.email })
-
-  } catch (error) {
-    return res.status(500).json({ reponse: error.message })
-  }
-  res.token = token
-  next()
-}
-async function getUserById(req, res, next) {
-  let user
-  try {
-    user = await User.findById(req.params.id)
-    if (user == null) {
-      return res.status(404).json({ reponse: "Utilisateur non trouve" })
-    }
-  } catch (error) {
-    return res.status(500).json({ reponse: error.message })
-  }
-  res.user = user
-  next()
-}
-
-function authentificateToken(req, res, next) {
-  const autHeader = req.headers['authorization']
-  const token = autHeader && autHeader.split(' ')[1]
-
-  if (token == null) return res.status(401).json({ reponse: "no token" })
-
-  jwt.verify(token, "SECRET", (err, user) => {
-    if (err) return res.status(403).json({ reponse: "token invalide" })
-    req.user = user
-    next()
-  })
-
-}
+})
+// Confirme email
 router.get('/confirmation/:email/:token', async (req, res, next) => {
   Token.findOne({ token: req.params.token }, function (err, token) {
     // token is not found into database i.e. token may have expired 
@@ -424,17 +407,13 @@ router.get('/confirmation/:email/:token', async (req, res, next) => {
   });
 
 });
+// Forgot password
+router.post('/forgotPassword', getUserByMail, (req, res, next) => {
 
-router.post('/forgotPassword', getUserByMail,checkToken, (req, res, next) => {
   // user is not found into database
   if (!res.user) {
     return res.status(400).send({ msg: 'We were unable to find a user with that email. Make sure your Email is correct!' });
-  } else if (res.token){
-    return res.status(403).send({ token: res.token.token });
-
-  }
- 
-  else {
+  } else {
     var seq = (Math.floor(Math.random() * 10000) + 10000).toString().substring(1);
     var token = new Token({ email: res.user.email, token: seq });
     token.save(function (err) {
@@ -479,54 +458,54 @@ router.post('/forgotPassword', getUserByMail,checkToken, (req, res, next) => {
 
 });
 
-router.post('/resetPassword/:email/:token' ,async (req, res, next) => {
-  Token.findOne({ token: req.params.token }, function (err, token) {
-      // token is not found into database i.e. token may have expired 
-      if (!token) {
-          return res.status(400).send({ msg: 'Your verification link may have expired. Please click on resend for verify your Email.' });
-      }
-      // if token is found then check valid user 
-      else {
-          User.findOne({email: req.params.email }, async function (err, user) {
-              // not valid user
-              if (!user) {
-                  return res.status(401).send({ msg: 'We were unable to find a user for this verification. Please SignUp!' });
-              } else {
 
-                  const salt = await Bcrypt.genSalt(10);
-                  user.password = await Bcrypt.hash(req.body.Password, salt);
-                  await token.remove();
-                  user.save(function (err) {
-                      // error occur
-                      
-                      if (err) {
-                          return res.status(500).send({ msg: err.message });
-                      }
-                      // account successfully verified
-                      else {
-                          return res.status(200).json({reponse:'Your password has been successfully reset'});
-                      }
-
-                  })
-
-              }
-
-          });
-      }});
-
-  });
-
-router.delete('/:id', getUserById, async (req, res) => {
+//middlewares 
+async function getUserByMail(req, res, next) {
+  let user
   try {
-    //get all user articles and delete them
-    const user = await User.findById(res.user.id)
+    user = await User.findOne({ email: req.body.email })
+    if (user == null) {
+      return res.status(404).json({ reponse: "mail" })
+    }
 
-    //delete the user
-    await res.user.remove()
-    res.json({ reponse: "Supprime avec succes" })
   } catch (error) {
-    res.json({ erreur: error.message })
+    return res.status(500).json({ reponse: error.message })
   }
-})
+  res.user = user
+  next()
+}
+
+
+async function getUserById(req, res, next) {
+  let user
+  try {
+    user = await User.findById(req.params.id)
+    if (user == null) {
+      return res.status(404).json({ reponse: "Utilisateur non trouve" })
+    }
+  } catch (error) {
+    return res.status(500).json({ reponse: error.message })
+  }
+  res.user = user
+  next()
+}
+
+function authentificateToken(req, res, next) {
+  const autHeader = req.headers['authorization']
+  const token = autHeader && autHeader.split(' ')[1]
+
+  if (token == null) return res.status(401).json({ reponse: "no token" })
+
+  jwt.verify(token, "SECRET", (err, user) => {
+    if (err) return res.status(403).json({ reponse: "token invalide" })
+    req.user = user
+    next()
+  })
+
+}
+
+
+
+
 
 module.exports = router;
