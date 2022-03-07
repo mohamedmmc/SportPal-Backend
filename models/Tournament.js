@@ -3,23 +3,23 @@ const mongoose = require('mongoose')
 //Changed on 12:20 4  mars Tournament
 
 const tournamentSchema = new mongoose.Schema({
-    owner : {
-        type: mongoose.Schema.Types.ObjectId,
-        ref:'complexeOwner'
+    type: {
+        type: String
     },
-    teams: [{
+    owner: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'team'
-    },{
-        points: Number,
-        isEliminated: Boolean
+        ref: 'complexeOwner',
+    },
+    participants: [{
+        _id: false, team: { type: mongoose.Schema.Types.ObjectId, ref: 'team' }, points: Number, isEliminated: Boolean,
     }],
     matchs: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'match'
     }],
     winner: {
-        type: String,
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'player',
         default: null
     },
     prize: {
@@ -33,6 +33,9 @@ const tournamentSchema = new mongoose.Schema({
     to: {
         type: Date
     },
+    numberOfParticipantsleft: {
+        type: Number
+    }
 
 })
 

@@ -27,7 +27,7 @@ db.on ("error", (error) => console.error(error))
 db.once('open',() => console.log("Connected to DB"))
 
 
-
+//for local db use mongodb://localhost:27017/sportpal
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
