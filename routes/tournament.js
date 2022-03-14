@@ -10,8 +10,18 @@ const { checkPrime } = require('crypto');
 /* GET All Teams. */
 router.get('/', async function (req, res, next) {
     try {
-        const tournaments = await Tournament.find()
+        const tournaments = await Tournament.find().populate('participants.team')
+
         res.json(tournaments)
+    } catch (error) {
+        res.status(500).json({ message: error.message })
+    }
+});
+
+/* GET One Tournament. */
+router.get('/:idtournament', getTournament, async function (req, res, next) {
+    try {
+        res.json(res.tournament)
     } catch (error) {
         res.status(500).json({ message: error.message })
     }
@@ -27,7 +37,7 @@ class participant {
 }
 
 /* Creating One Tournament*/
-router.post("/add-tournament", async (req, res, next) => {
+router.post("/add-league-tournament", async (req, res, next) => {
 
     const teams = []
     const otherTeams = []
@@ -78,33 +88,36 @@ router.post("/add-tournament", async (req, res, next) => {
 
 })
 
-/* Creating One Tournament*/
-router.post("/add-match", getTournament, async (req, res, next) => {
+// /* Creating One Tournament*/
+// router.post("/add-match", getTournament, async (req, res, next) => {
 
-    if (res.tournament = ! null) {
-        const match = new Match({
-            ...req.body,
-            matchs: req.body.matchs,
-            participants: { teams: req.body.teams, points: req.body.points, isEliminated: req.body.isEliminated },
-        })
-    }
+//     if (res.tournament = ! null) {
+//         const match = new Match({
+//             ...req.body,
+//             matchs: req.body.matchs,
+//             participants: { teams: req.body.teams, points: req.body.points, isEliminated: req.body.isEliminated },
+//         })
+//     }
 
-    try {
-        const newTournament = await tournament.save();
-        console.log("Posted Successfuly" + tournament)
-        res.status(201).json({ newTournament });
-    } catch (error) {
-        res.status(400).json({ message: error.message })
-    }
-})
+//     try {
+//         const newTournament = await tournament.save();
+//         console.log("Posted Successfuly" + tournament)
+//         res.status(201).json({ newTournament });
+//     } catch (error) {
+//         res.status(400).json({ message: error.message })
+//     }
+// })
 
 /* Joining One Tournament*/
 router.patch("/add-team/:idtournament/:idteam", getTournament, getTeam, multer, async (req, res, next) => {
 
-    if (res.tournament.numberOfParticipantsleft = !0) {
-        res.tournament.participants.team = res.team.id
-        console.log(res.tournament.participants.team )
-    }
+    console.log(res.tournament.numberOfParticipants.count)
+    console.log(res.tournament.numberOfParticipants.length)
+
+    // if (res.tournament.numberOfParticipants) {
+    //     res.tournament.participants.team = res.team.id
+    //     console.log(res.tournament.participants.team)
+    // }
 
     //  res.team
     // console.log('iam a Participant--> ', res.tournament.participants)
@@ -126,8 +139,8 @@ router.patch("/add-team/:idtournament/:idteam", getTournament, getTeam, multer, 
 
 /* Updating One */
 router.patch("/:idtournament", multer, getTournament, async (req, res, next) => {
-    if (req.body.teams != null) {
-        res.tournament.teams = req.body.teams
+    if (req.body.participants != null) {
+        res.tournament.participants = req.body.participants
     }
     if (req.body.matchs != null) {
         res.tournament.matchs = req.body.matchs

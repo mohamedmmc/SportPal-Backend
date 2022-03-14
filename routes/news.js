@@ -78,7 +78,7 @@ router.get('/Tennis', async function (req, res, next) {
 
             count++
 
-            if (count == 8) { break }
+            if (count == 12) { break }
 
             thisNews = new News({
                 title: newsArticles[link].articleDetails.title,

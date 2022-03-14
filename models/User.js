@@ -1,3 +1,4 @@
+const { Double } = require('mongodb')
 const mongoose = require('mongoose')
 var util = require('util')
 const baseOptions = {
@@ -5,10 +6,7 @@ const baseOptions = {
     collection: 'user'
 }
 const userSchema = new mongoose.Schema({
-    firstName: {
-        type: String
-    },
-    lastName: {
+    fullName: {
         type: String
     },
     email: {
@@ -16,7 +14,6 @@ const userSchema = new mongoose.Schema({
         required: true,
         type: String,
         match: /.+\@.+\..+/
-
     },
     password: {
         type: String
@@ -38,8 +35,17 @@ const userSchema = new mongoose.Schema({
     },
     birthDate: {
         type: Date
-    }
-    
+    },
+    gender: {
+        type: String
+    },
+    height: {
+        type: Number
+
+    },
+    weight: {
+        type: Number
+    },
 
 }, baseOptions)
 

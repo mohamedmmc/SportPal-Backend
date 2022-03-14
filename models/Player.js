@@ -2,20 +2,28 @@ const mongoose = require('mongoose')
 const User = require('./User')
 
 const playerSchema = new mongoose.Schema({
-
     team: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'team'
     }],
-    sport: [{
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'sport'
+    // sport: [{
+    //     type: mongoose.Schema.Types.ObjectId,
+    //     ref: 'sport'
+    // }],
+    sports: [{
+        _id: false, sport: { type: mongoose.Schema.Types.ObjectId, ref: 'sport' }, strongLeg: String, strongHand: String,
     }],
     rating: {
         type: String
     },
-    description:{
-        type:String
-    }
+    description: {
+        type: String
+    },
+    // strongHand: {
+    //     type: String
+    // },
+    // strongLeg: {
+    //     type: String
+    // },
 })
 module.exports = User.discriminator('player', playerSchema)

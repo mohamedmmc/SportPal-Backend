@@ -401,6 +401,7 @@ router.post('/forgotPassword', getUserByMail, (req, res, next) => {
   } else {
     var seq = (Math.floor(Math.random() * 10000) + 10000).toString().substring(1);
     var token = new Token({ email: res.user.email, token: seq });
+    console.log('i am a token' + token)
     token.save(function (err) {
       if (err) {
         return res.status(500).send({ msg: err.message });
@@ -418,7 +419,7 @@ router.post('/forgotPassword', getUserByMail, (req, res, next) => {
 
     var mailOptions = {
       from: 'fanart3a18@gmail.com', to: res.user.email, subject:
-        'Mot de passe oubliè Lost And Found', text: 'Vous recevez cet email car vous (ou quelqu\'n d\'autre) a fait cette demande de mot de passe oubliè.\n\n' +
+        'Mot de passe oubliè SportPal', text: 'Vous recevez cet email car vous (ou quelqu\'n d\'autre) a fait cette demande de mot de passe oubliè.\n\n' +
           'Merci de cliquer sur le lien suivant ou copier le sur votre navigateur pour completer le processus:\n\n' + 'Le code est :' + token.token + '\n\n' +
           '\n\n Si vous n\'avez pas fait cette requete, veuillez ignorer ce message et votre mot de passe sera le méme.\n'
     };
@@ -443,6 +444,44 @@ router.post('/forgotPassword', getUserByMail, (req, res, next) => {
 
 });
 
+/* ResetPassword */
+router.post('/resetPassword/:email/:token', async (req, res, next) => {
+  Token.findOne({ token: req.params.token }, function (err, token) {
+    // token is not found into database i.e. token may have expired 
+    if (!token) {
+      return res.status(400).send({ msg: 'Your verification link may have expired. Please click on resend for verify your Email.' });
+    }
+    // if token is found then check valid user 
+    else {
+      User.findOne({ email: req.params.email }, async function (err, user) {
+        // not valid user
+        if (!user) {
+          return res.status(401).send({ msg: 'We were unable to find a user for this verification. Please SignUp!' });
+        } else {
+
+          const salt = await Bcrypt.genSalt(10);
+          user.password = await Bcrypt.hash(req.body.Password, salt);
+          await token.remove();
+          user.save(function (err) {
+            // error occur
+
+            if (err) {
+              return res.status(500).send({ msg: err.message });
+            }
+            // account successfully verified
+            else {
+              return res.status(200).json({ reponse: 'Your password has been successfully reset' });
+            }
+
+          })
+
+        }
+
+      });
+    }
+  });
+
+});
 
 //middlewares 
 async function getUserByMail(req, res, next) {
@@ -487,9 +526,5 @@ function authentificateToken(req, res, next) {
   })
 
 }
-
-
-
-
 
 module.exports = router;
