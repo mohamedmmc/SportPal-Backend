@@ -6,11 +6,8 @@ const baseOptions = {
     collection: 'user'
 }
 const userSchema = new mongoose.Schema({
-<<<<<<< Updated upstream
-    fullname: {
-=======
+
     fullName: {
->>>>>>> Stashed changes
         type: String
     },
     email: {
@@ -37,14 +34,8 @@ const userSchema = new mongoose.Schema({
     address: {
         type: String
     },
-<<<<<<< Updated upstream
-    age: {
-        type: String
-    }
-    
-=======
     birthDate: {
-        type: Date
+        type: String
     },
     gender: {
         type: String
@@ -56,7 +47,6 @@ const userSchema = new mongoose.Schema({
     weight: {
         type: Number
     },
->>>>>>> Stashed changes
 
 }, baseOptions)
 

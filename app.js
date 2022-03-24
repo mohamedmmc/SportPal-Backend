@@ -5,7 +5,6 @@ var express = require('express');
 var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
-const mongoose = require ("mongoose")
 const mongoose = require("mongoose")
 
 //var indexRouter = require('./routes/index');
@@ -18,10 +17,7 @@ var newsRouter = require('./routes/news');
 var teamRouter = require('./routes/team');
 var matchRouter = require('./routes/match');
 var tournamentRouter = require('./routes/tournament');
-<<<<<<< Updated upstream
-=======
 var sportRouter = require('./routes/sport');
->>>>>>> Stashed changes
 
 var app = express();
 
@@ -52,9 +48,6 @@ app.use('/news', newsRouter);
 app.use('/team', teamRouter);
 app.use('/match', matchRouter);
 app.use('/tournament', tournamentRouter);
-<<<<<<< Updated upstream
-=======
 app.use('/sport', sportRouter);
->>>>>>> Stashed changes
 
 module.exports = app;

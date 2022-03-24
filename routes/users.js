@@ -18,24 +18,6 @@ router.get('/', async function (req, res, next) {
   }
 });
 
-<<<<<<< Updated upstream
-/* Check email*/
-router.post('/checkMail', async function (req, res, next) {
-  try {
-    const user = await User.findOne({email:req.body.email})
-    if (user){
-      return res.status(200).json({reponse:"exist"})
-    }else{
-      return res.status(203).json({reponse:"good"})
-    }
-    
-  } catch (error) {
-    res.status(500).json({ message: error.message })
-  }
-});
-
-=======
->>>>>>> Stashed changes
 /* GET users listing. */
 router.get('/otp', async function (req, res, next) {
   try {
@@ -48,11 +30,6 @@ router.get('/otp', async function (req, res, next) {
 
 //Login
 router.post('/login', getUserByMail, async (req, res, next) => {
-<<<<<<< Updated upstream
-  try {
-    if (await Bcrypt.compare(req.body.password, res.user.password)) {
-      const token = jwt.sign({ username: res.user.email }, "SECRET")
-=======
     console.log(res.user)
 
   const token = jwt.sign({ username: res.user.email }, "SECRET")
@@ -61,7 +38,6 @@ router.post('/login', getUserByMail, async (req, res, next) => {
        try {
          if (await Bcrypt.compare(req.body.password, res.user.password)) {
       
->>>>>>> Stashed changes
       if (token) {
         return res.json({
           token: token,
@@ -92,20 +68,6 @@ router.post('/login', getUserByMail, async (req, res, next) => {
  
 })
 
-<<<<<<< Updated upstream
-// Delete one user
-router.delete('/:id', getUserById, async (req, res) => {
-  try {
-    //get all user articles and delete them
-    const user = await User.findById(res.user.id)
-
-    //delete the user
-    await res.user.remove()
-    res.json({ reponse: "Supprime avec succes" })
-  } catch (error) {
-    res.json({ erreur: error.message })
-  }
-=======
 
 router.post('/checkMail', async function (req, res, next) {
   try {
@@ -143,7 +105,6 @@ router.delete('/:id', getUserById, async (req, res) => {
   } catch (error) {
     res.json({ erreur: error.message })
   }
->>>>>>> Stashed changes
 })
 // Confirme email
 router.get('/confirmation/:email/:token', async (req, res, next) => {
@@ -528,33 +489,6 @@ router.post('/forgotPassword', getUserByMail, (req, res, next) => {
 
 });
 
-<<<<<<< Updated upstream
-
-//middlewares 
-async function getUserByMail(req, res, next) {
-  let user
-  try {
-    user = await User.findOne({ email: req.body.email })
-    if (user == null) {
-      return res.status(404).json({ reponse: "mail" })
-    }
-
-  } catch (error) {
-    return res.status(500).json({ reponse: error.message })
-  }
-  res.user = user
-  next()
-}
-
-
-async function getUserById(req, res, next) {
-  let user
-  try {
-    user = await User.findById(req.params.id)
-    if (user == null) {
-      return res.status(404).json({ reponse: "Utilisateur non trouve" })
-    }
-=======
 /* ResetPassword */
 router.post('/resetPassword/:email/:token', async (req, res, next) => {
   Token.findOne({ token: req.params.token }, function (err, token) {
@@ -603,7 +537,6 @@ async function getUserByMail(req, res, next) {
       return res.status(404).json({ reponse: "mail" })
     }
 
->>>>>>> Stashed changes
   } catch (error) {
     return res.status(500).json({ reponse: error.message })
   }
@@ -611,8 +544,20 @@ async function getUserByMail(req, res, next) {
   next()
 }
 
-<<<<<<< Updated upstream
-=======
+function authentificateToken(req, res, next) {
+  const autHeader = req.headers['authorization']
+  const token = autHeader && autHeader.split(' ')[1]
+
+  if (token == null) return res.status(401).json({ reponse: "no token" })
+
+  jwt.verify(token, "SECRET", (err, user) => {
+    if (err) return res.status(403).json({ reponse: "token invalide" })
+    req.user = user
+    next()
+  })
+
+}
+
 async function getUserById(req, res, next) {
   let user
   try {
@@ -627,26 +572,6 @@ async function getUserById(req, res, next) {
   next()
 }
 
->>>>>>> Stashed changes
-function authentificateToken(req, res, next) {
-  const autHeader = req.headers['authorization']
-  const token = autHeader && autHeader.split(' ')[1]
 
-  if (token == null) return res.status(401).json({ reponse: "no token" })
-
-  jwt.verify(token, "SECRET", (err, user) => {
-    if (err) return res.status(403).json({ reponse: "token invalide" })
-    req.user = user
-    next()
-  })
-
-}
-<<<<<<< Updated upstream
-
-
-
-
-=======
->>>>>>> Stashed changes
 
 module.exports = router;
