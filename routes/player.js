@@ -6,7 +6,7 @@ var User = require('../models/User')
 var Player = require('../models/Player')
 var nodemailer = require("nodemailer");
 var Bcrypt = require('bcrypt')
-
+var jwt = require('jsonwebtoken')
 /* GET users listing. */
 
 
@@ -23,21 +23,30 @@ router.get('/', async function (req, res, next) {
 router.post('/', multer, async (req, res) => {
 
   await User.init();
-  const hashedPass = await Bcrypt.hash(req.body.password, 10)
+    
   const player = new Player({
     ...req.body,
-    password: hashedPass
   })
+  if (req.body.password != null) {
+    try {
+    const hashedPass = await Bcrypt.hash(req.body.password, 10)
+    player.password= hashedPass
+  } catch (error) {
+    return res.json({erreur:error.message})
+  }
+  }
   if (req.file != null) {
     const photoCloudinary = await cloudinary.uploader.upload(req.file.path)
     player.profilePic = photoCloudinary.url
   }
-
+  const token = jwt.sign({ username: player.email }, "SECRET")
   try {
     const newPlayer = await player.save()
-  return res.status(201).json(newPlayer)
+    return res.status(201).json({
+      user: newPlayer,
+    token:token})
   } catch (error) {
-    return res.status(401).json(error.message)
+    return res.status(401).json({ message: error.message })
   }
 
   //   try {
@@ -281,7 +290,10 @@ router.post('/', multer, async (req, res) => {
 
 /* Updating One */
 router.patch("/:id", multer, getPlayer, async (req, res) => {
+<<<<<<< Updated upstream
   console.log(req.body)
+=======
+>>>>>>> Stashed changes
   if (req.body.team != null) {
       res.player.team = req.body.team
   }
@@ -294,11 +306,19 @@ router.patch("/:id", multer, getPlayer, async (req, res) => {
   if (req.body.description != null) {
     res.player.description = req.body.description
 }
+<<<<<<< Updated upstream
   if (req.body.fullname != null) {
     res.player.fullname = req.body.fullname
   }
   if (req.body.age != null) {
     res.player.age = req.body.age
+=======
+  if (req.body.fullName != null) {
+    res.player.fullName = req.body.fullName
+  }
+  if (req.body.birthDate != null) {
+    res.player.birthDate = req.body.birthDate
+>>>>>>> Stashed changes
   }
   if (req.body.email != null) {
     res.player.email = req.body.email
@@ -308,6 +328,7 @@ router.patch("/:id", multer, getPlayer, async (req, res) => {
   }
   if (req.file != null) {
     const photoCloudinary = await cloudinary.uploader.upload(req.file.path)
+<<<<<<< Updated upstream
     res.player.profilePic = photoCloudinary.url
   }
   
@@ -331,6 +352,37 @@ async function getPlayer(req, res, next) {
   } catch (error) {
       return res.status(500).json({ message: error.message })
   }
+=======
+    console.log(photoCloudinary)
+    res.player.profilePic = photoCloudinary.url
+  }
+
+  try {
+    const updatedTeam = await res.player.save()
+    
+      res.status(200).json({ user: updatedTeam })
+  } catch (error) {
+      res.status(400).json({ message: error.message })
+
+  }
+})
+
+//middlewares
+async function getPlayer(req, res, next) {
+  let player
+  try {
+    player = await User.findById(req.params.id)
+      if (player == null) {
+          return res.status(404).json({ message: 'Cannot find player' })
+      }
+  } catch (error) {
+      return res.status(500).json({ message: error.message })
+  }
+
+  res.player = player
+  next()
+}
+>>>>>>> Stashed changes
 
   res.player = player
   next()

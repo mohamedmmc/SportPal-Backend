@@ -5,7 +5,6 @@ var router = express.Router();
 var User = require('../models/User')
 var jwt = require('jsonwebtoken')
 var Bcrypt = require('bcrypt')
-var crypto = require('crypto')
 var Token = require('../models/Token')
 var nodemailer = require("nodemailer");
 
@@ -19,6 +18,7 @@ router.get('/', async function (req, res, next) {
   }
 });
 
+<<<<<<< Updated upstream
 /* Check email*/
 router.post('/checkMail', async function (req, res, next) {
   try {
@@ -34,6 +34,8 @@ router.post('/checkMail', async function (req, res, next) {
   }
 });
 
+=======
+>>>>>>> Stashed changes
 /* GET users listing. */
 router.get('/otp', async function (req, res, next) {
   try {
@@ -46,22 +48,88 @@ router.get('/otp', async function (req, res, next) {
 
 //Login
 router.post('/login', getUserByMail, async (req, res, next) => {
+<<<<<<< Updated upstream
   try {
     if (await Bcrypt.compare(req.body.password, res.user.password)) {
       const token = jwt.sign({ username: res.user.email }, "SECRET")
+=======
+    console.log(res.user)
+
+  const token = jwt.sign({ username: res.user.email }, "SECRET")
+  if (req.body.password != null) {
+    console.log("bel password",res.user)
+       try {
+         if (await Bcrypt.compare(req.body.password, res.user.password)) {
+      
+>>>>>>> Stashed changes
       if (token) {
-        res.json({
+        return res.json({
           token: token,
           user: res.user
         })
       }
     } else {
-      res.status(401).json({ error: "pass incorrect" })
+      return res.status(401).json({ error: "pass incorrect" })
     }
   } catch (error) {
-    res.status(500).json({ reponse: error.message })
-  }
+    return res.status(500).json({ reponse: error.message })
+       }
+      
+    }
+    
+      
+      
+  else {
+   console.log("maghir password",res.user)
+      if (token) {
+       return res.json({
+          token: token,
+          user: res.user
+        })
+      }
+      
+    }
+ 
 })
+
+<<<<<<< Updated upstream
+// Delete one user
+router.delete('/:id', getUserById, async (req, res) => {
+  try {
+    //get all user articles and delete them
+    const user = await User.findById(res.user.id)
+
+    //delete the user
+    await res.user.remove()
+    res.json({ reponse: "Supprime avec succes" })
+  } catch (error) {
+    res.json({ erreur: error.message })
+  }
+=======
+
+router.post('/checkMail', async function (req, res, next) {
+  try {
+    const user = await User.findOne({email:req.body.email})
+    if (user){
+      return res.status(200).json({reponse:user})
+    }else{
+      return res.status(203).json({reponse:"good"})
+    }
+
+  } catch (error) {
+    res.status(500).json({ message: error.message })
+  }
+});
+
+/* GET users listing. */
+router.get('/otp', async function (req, res, next) {
+  try {
+    const user = await User.find()
+    res.json(user)
+  } catch (error) {
+    res.status(500).json({ message: error.message })
+  }
+});
 
 // Delete one user
 router.delete('/:id', getUserById, async (req, res) => {
@@ -75,6 +143,7 @@ router.delete('/:id', getUserById, async (req, res) => {
   } catch (error) {
     res.json({ erreur: error.message })
   }
+>>>>>>> Stashed changes
 })
 // Confirme email
 router.get('/confirmation/:email/:token', async (req, res, next) => {
@@ -416,6 +485,7 @@ router.post('/forgotPassword', getUserByMail, (req, res, next) => {
   } else {
     var seq = (Math.floor(Math.random() * 10000) + 10000).toString().substring(1);
     var token = new Token({ email: res.user.email, token: seq });
+    console.log('i am a token' + token)
     token.save(function (err) {
       if (err) {
         return res.status(500).send({ msg: err.message });
@@ -433,7 +503,7 @@ router.post('/forgotPassword', getUserByMail, (req, res, next) => {
 
     var mailOptions = {
       from: 'fanart3a18@gmail.com', to: res.user.email, subject:
-        'Mot de passe oubliè Lost And Found', text: 'Vous recevez cet email car vous (ou quelqu\'n d\'autre) a fait cette demande de mot de passe oubliè.\n\n' +
+        'Mot de passe oubliè SportPal', text: 'Vous recevez cet email car vous (ou quelqu\'n d\'autre) a fait cette demande de mot de passe oubliè.\n\n' +
           'Merci de cliquer sur le lien suivant ou copier le sur votre navigateur pour completer le processus:\n\n' + 'Le code est :' + token.token + '\n\n' +
           '\n\n Si vous n\'avez pas fait cette requete, veuillez ignorer ce message et votre mot de passe sera le méme.\n'
     };
@@ -458,6 +528,7 @@ router.post('/forgotPassword', getUserByMail, (req, res, next) => {
 
 });
 
+<<<<<<< Updated upstream
 
 //middlewares 
 async function getUserByMail(req, res, next) {
@@ -483,6 +554,56 @@ async function getUserById(req, res, next) {
     if (user == null) {
       return res.status(404).json({ reponse: "Utilisateur non trouve" })
     }
+=======
+/* ResetPassword */
+router.post('/resetPassword/:email/:token', async (req, res, next) => {
+  Token.findOne({ token: req.params.token }, function (err, token) {
+    // token is not found into database i.e. token may have expired 
+    if (!token) {
+      return res.status(400).send({ msg: 'Your verification link may have expired. Please click on resend for verify your Email.' });
+    }
+    // if token is found then check valid user 
+    else {
+      User.findOne({ email: req.params.email }, async function (err, user) {
+        // not valid user
+        if (!user) {
+          return res.status(401).send({ msg: 'We were unable to find a user for this verification. Please SignUp!' });
+        } else {
+
+          const salt = await Bcrypt.genSalt(10);
+          user.password = await Bcrypt.hash(req.body.Password, salt);
+          await token.remove();
+          user.save(function (err) {
+            // error occur
+
+            if (err) {
+              return res.status(500).send({ msg: err.message });
+            }
+            // account successfully verified
+            else {
+              return res.status(200).json({ reponse: 'Your password has been successfully reset' });
+            }
+
+          })
+
+        }
+
+      });
+    }
+  });
+
+});
+
+//middlewares 
+async function getUserByMail(req, res, next) {
+  let user
+  try {
+    user = await User.findOne({ email: req.body.email })
+    if (user == null) {
+      return res.status(404).json({ reponse: "mail" })
+    }
+
+>>>>>>> Stashed changes
   } catch (error) {
     return res.status(500).json({ reponse: error.message })
   }
@@ -490,6 +611,23 @@ async function getUserById(req, res, next) {
   next()
 }
 
+<<<<<<< Updated upstream
+=======
+async function getUserById(req, res, next) {
+  let user
+  try {
+    user = await User.findById(req.params.id)
+    if (user == null) {
+      return res.status(404).json({ reponse: "Utilisateur non trouve" })
+    }
+  } catch (error) {
+    return res.status(500).json({ reponse: error.message })
+  }
+  res.user = user
+  next()
+}
+
+>>>>>>> Stashed changes
 function authentificateToken(req, res, next) {
   const autHeader = req.headers['authorization']
   const token = autHeader && autHeader.split(' ')[1]
@@ -503,9 +641,12 @@ function authentificateToken(req, res, next) {
   })
 
 }
+<<<<<<< Updated upstream
 
 
 
 
+=======
+>>>>>>> Stashed changes
 
 module.exports = router;
