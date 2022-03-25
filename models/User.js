@@ -1,3 +1,4 @@
+const { Double } = require('mongodb')
 const mongoose = require('mongoose')
 var util = require('util')
 const baseOptions = {
@@ -5,10 +6,15 @@ const baseOptions = {
     collection: 'user'
 }
 const userSchema = new mongoose.Schema({
+<<<<<<< Updated upstream
     firstName: {
         type: String
     },
     lastName: {
+=======
+
+    fullName: {
+>>>>>>> Stashed changes
         type: String
     },
     email: {
@@ -16,7 +22,6 @@ const userSchema = new mongoose.Schema({
         required: true,
         type: String,
         match: /.+\@.+\..+/
-
     },
     password: {
         type: String
@@ -33,9 +38,13 @@ const userSchema = new mongoose.Schema({
     isVerified: {
         type: Boolean, default: false
     },
-    address: {
+    address: [{
+        type: Number
+    }],
+    birthDate: {
         type: String
     },
+<<<<<<< Updated upstream
     birthDate: {
         type: Date
     },
@@ -43,6 +52,18 @@ const userSchema = new mongoose.Schema({
         type: Date
     }
     
+=======
+    gender: {
+        type: String
+    },
+    height: {
+        type: Number
+
+    },
+    weight: {
+        type: Number
+    },
+>>>>>>> Stashed changes
 
 }, baseOptions)
 

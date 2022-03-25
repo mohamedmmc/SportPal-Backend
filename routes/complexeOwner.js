@@ -1,62 +1,62 @@
 var express = require('express');
 var router = express.Router();
 var multer = require('../middleware/multer')
+var multerF = require('../middleware/multer-file')
 var cloudinary = require('../middleware/cloudinary')
 var User = require('../models/User')
-var Player = require('../models/Player')
+var ComplexeOwner = require('../models/ComplexeOwner')
+var Token = require('../models/Token')
 var nodemailer = require("nodemailer");
+var jwt = require('jsonwebtoken')
 var Bcrypt = require('bcrypt')
-var jwt = require('jsonwebtoken');
-const Sport = require('../models/Sport');
-/* GET users listing. */
+var crypto = require('crypto')
+var Tournament = require('../models/Tournament')
+var Team = require('../models/Team')
+var Match = require('../models/Match')
 
+/* GET ComplexeOwner listing. */
 
 router.get('/', async function (req, res, next) {
   try {
-    const player = await Player.find({ type: "player" })
-    res.json(player)
+    const complexeOwner = await User.find({ type: "complexeOwner" })
+    res.json(complexeOwner)
   } catch (error) {
     res.status(500).json({ message: error.message })
   }
 });
 
-//add player
+
+/* POST ComplexeOwner. */
 router.post('/', multer, async (req, res) => {
+  //await User.init();
+  //const photoCloudinary = await cloudinary.uploader.upload(req.file.path)
 
-  await User.init();
+  const hashedPass = await Bcrypt.hash(req.body.password, 10)
 
-  const player = new Player({
+  const complexeOwner = new ComplexeOwner({
     ...req.body,
-
+    password: hashedPass
   })
-  if (req.body.password != null) {
-    try {
-      const hashedPass = await Bcrypt.hash(req.body.password, 10)
-      player.password = hashedPass
-    } catch (error) {
-      return res.json({ erreur: error.message })
-    }
-  }
   if (req.file != null) {
+
     const photoCloudinary = await cloudinary.uploader.upload(req.file.path)
-<<<<<<< Updated upstream
-    player.picture = photoCloudinary.url
-=======
-    player.profilePic = photoCloudinary.url
+    complexeOwner.profilePic = photoCloudinary.url
+
+    console.log(photoCloudinary)
   } else {
-    player.profilePic = "https://res.cloudinary.com/dy05x9auh/image/upload/v1648226974/athlete_lxnnu3.png"
->>>>>>> Stashed changes
+    complexeOwner.profilePic = "https://res.cloudinary.com/dy05x9auh/image/upload/v1648226972/stadium_r4e5hx.png"
   }
-  const token = jwt.sign({ username: player.email }, "SECRET")
+
   try {
-    const newPlayer = await player.save()
-    return res.status(201).json({
-      user: newPlayer,
-      token: token
-    })
+    const newComplexe = await complexeOwner.save()
+    return res.status(201).json(newComplexe)
   } catch (error) {
-    return res.status(401).json({ message: error.message })
+    return res.status(400).json({ message: error.message })
   }
+
+
+
+
 
   //   try {
   //       var token = new Token({ email: user.email, token: crypto.randomBytes(16).toString('hex') });
@@ -297,97 +297,49 @@ router.post('/', multer, async (req, res) => {
   // }
 })
 
-<<<<<<< Updated upstream
-
-
-=======
-/* Updating One */
-router.patch("/:id/:idSport", multer, getPlayer, getSport, async (req, res) => {
-  if (req.body.team != null) {
-    res.player.team = req.body.team
+//add file for complexeOwner
+router.post('/file/:id', multerF, getComplexeOwner, async (req, res) => {
+  const complexeOwner = await res.complexeOwner
+  if (complexeOwner) {
+    complexeOwner.files = req.file.filename
   }
-  if (req.body.sport != null) {
-    res.player.sport = req.body.sport
-  }
-  if (req.body.rating != null) {
-    res.player.rating = req.body.rating
-  }
-  if (req.body.description != null) {
-    res.player.description = req.body.description
-  }
-  if (req.body.fullName != null) {
-    res.player.fullName = req.body.fullName
-  }
-  if (req.body.birthDate != null) {
-    res.player.birthDate = req.body.birthDate
-  }
-  if (req.body.email != null) {
-    res.player.email = req.body.email
-  }
-  if (req.body.telNum != null) {
-    res.player.telNum = req.body.telNum
-  }
-
-  if (req.body.strongHand != null && res.sport._id == '622f5416841f4493413f276f') {
-    res.player.sports[0].strongHand = req.body.strongHand
-    console.log(await Sport.findById(res.sport._id))
-    console.log("tennis")
-  }
-
-
-  if (res.sport._id == '622f543ef89ec3e99faf1042') {
-    console.log("football")
-  }
-
-  if (req.body.strongLeg != null) {
-    res.player.sports[1].strongLeg = req.body.strongLeg
-  }
-  if (req.file != null) {
-    const photoCloudinary = await cloudinary.uploader.upload(req.file.path)
-    console.log(photoCloudinary)
-    res.player.profilePic = photoCloudinary.url
-  }
-
+  console.log(req.file)
   try {
-    const updatedTeam = await res.player.save()
-
-    res.status(200).json({ user: updatedTeam })
+    const newComplexe = await complexeOwner.save()
+    return res.status(201).json(newComplexe)
   } catch (error) {
-    res.status(400).json({ message: error.message })
-
+    return res.status(400).json(error)
   }
 })
 
-//middlewares
-async function getPlayer(req, res, next) {
-  let player
+
+/* Deleting One */
+router.delete("/:id", getComplexeOwner, async (req, res) => {
   try {
-    player = await User.findById(req.params.id)
-    if (player == null) {
-      return res.status(404).json({ message: 'Cannot find player' })
+    await res.complexeOwner.remove()
+    res.json({ message: 'Deleted complexe owner ' })
+  } catch (error) {
+    res.status(500).json({ message: error.message })
+  }
+})
+
+// MiddleWares
+
+/*Complexeowner by ID 
+*/
+async function getComplexeOwner(req, res, next) {
+  let complexeOwner
+  try {
+    complexeOwner = await ComplexeOwner.findById(req.params.id)
+    if (complexeOwner == null) {
+      return res.status(404).json({ message: 'Cannot find complexe owner ! ' })
     }
   } catch (error) {
     return res.status(500).json({ message: error.message })
   }
 
-  res.player = player
+  res.complexeOwner = complexeOwner
   next()
 }
 
-async function getSport(req, res, next) {
-  let sport
-  try {
-    sport = await Sport.findById(req.params.idSport)
-    if (sport == null) {
-      return res.status(404).json({ message: 'Cannot find sport' })
-    }
-  } catch (error) {
-    return res.status(500).json({ message: error.message })
-  }
-
-  res.sport = sport
-  next()
-}
-
->>>>>>> Stashed changes
 module.exports = router;

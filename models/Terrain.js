@@ -1,7 +1,7 @@
 const mongoose = require('mongoose')
 
 
-const complexeSchema = new mongoose.Schema({
+const terrainSchema = new mongoose.Schema({
     complexe: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'complexe'
@@ -9,11 +9,9 @@ const complexeSchema = new mongoose.Schema({
     typeSport: {
         type: String,
     },
-
     picture: {
-        type: Number
+        type: String
     },
-
 })
 
-module.exports = mongoose.model('complexe', complexeSchema)
+module.exports = mongoose.model('terrain', terrainSchema)
