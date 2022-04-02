@@ -7,7 +7,7 @@ var Team = require('../models/Team')
 /* GET All Teams. */
 router.get('/', async function (req, res, next) {
     try {
-        const teams = await Team.find()
+        const teams = await Team.find().populate('players')
         res.json(teams)
     } catch (error) {
         res.status(500).json({ message: error.message })
@@ -15,22 +15,38 @@ router.get('/', async function (req, res, next) {
 });
 
 /* Creating One Team */
-router.post("/", async (req, res, next) => {
-
-    const player = new Player({
-        ...req.body
-    })
-    const team = new Team({
-        ...req.body,
-        players: player
-    })
-    console.log("Posted Successfuly" + team)
+router.post("/:id", async (req, res, next) => {
+    var player
     try {
-        const newTeam = await team.save();
-        res.status(201).json({ newTeam });
-    } catch (error) {
-        res.status(400).json({ message: error.message })
+        player = await Player.findById(req.params.id).populate('team')
+        if (player) {
+            for (i = 0; i < player.team.length; i++) {
+                if (player.team[i].typeSport == req.body.typeSport) {
+                    return res.json({ message: "already in team" })
+                }
+            }
+            const team = new Team({
+                captain: req.params.id,
+                players: [player],
+                typeSport: req.body.typeSport
+            })
+            console.log("team crée" + team)
+            player.team.push(team.id)
+            try {
+                const newPlayer = await player.save();
+                const newTeam = await team.save();
+                res.status(201).json({ newTeam });
+            } catch (error) {
+                res.status(400).json({ message: error.message })
+            }
+        } else {
+            return res.json({ message: "invalid" })
+        }
     }
+    catch (error) {
+        return res.json({ message: error.message })
+    }
+
 })
 
 /* Updating One */
@@ -56,6 +72,7 @@ router.patch("/:id", multer, getTeam, async (req, res) => {
 /* Deleting One */
 router.delete("/:id", getTeam, async (req, res) => {
     try {
+
         await res.team.remove()
         res.json({ message: 'Deleted team' })
     } catch (error) {

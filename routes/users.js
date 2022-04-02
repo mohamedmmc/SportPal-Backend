@@ -12,6 +12,16 @@ var nodemailer = require("nodemailer");
 router.get('/', async function (req, res, next) {
   try {
     const user = await User.find()
+    for (i = 0; i < user.length; i++) {
+      if (user[i].profilPic == null) {
+        user[i].fullName = "test"
+        try {
+          await user[i].save();
+        } catch (error) {
+          console.log(error.message)
+        }
+      }
+    }
     res.json(user)
   } catch (error) {
     res.status(500).json({ message: error.message })
@@ -30,52 +40,52 @@ router.get('/otp', async function (req, res, next) {
 
 //Login
 router.post('/login', getUserByMail, async (req, res, next) => {
-    console.log(res.user)
+  console.log(res.user)
 
   const token = jwt.sign({ username: res.user.email }, "SECRET")
   if (req.body.password != null) {
-    console.log("bel password",res.user)
-       try {
-         if (await Bcrypt.compare(req.body.password, res.user.password)) {
-      
-      if (token) {
-        return res.json({
-          token: token,
-          user: res.user
-        })
+    console.log("bel password", res.user)
+    try {
+      if (await Bcrypt.compare(req.body.password, res.user.password)) {
+
+        if (token) {
+          return res.json({
+            token: token,
+            user: res.user
+          })
+        }
+      } else {
+        return res.status(401).json({ error: "pass incorrect" })
       }
-    } else {
-      return res.status(401).json({ error: "pass incorrect" })
+    } catch (error) {
+      return res.status(500).json({ reponse: error.message })
     }
-  } catch (error) {
-    return res.status(500).json({ reponse: error.message })
-       }
-      
-    }
-    
-      
-      
+
+  }
+
+
+
   else {
-   console.log("maghir password",res.user)
-      if (token) {
-       return res.json({
-          token: token,
-          user: res.user
-        })
-      }
-      
+    console.log("maghir password", res.user)
+    if (token) {
+      return res.json({
+        token: token,
+        user: res.user
+      })
     }
- 
+
+  }
+
 })
 
 
 router.post('/checkMail', async function (req, res, next) {
   try {
-    const user = await User.findOne({email:req.body.email})
-    if (user){
-      return res.status(200).json({reponse:user})
-    }else{
-      return res.status(203).json({reponse:"good"})
+    const user = await User.findOne({ email: req.body.email })
+    if (user) {
+      return res.status(200).json({ reponse: user })
+    } else {
+      return res.status(203).json({ reponse: "good" })
     }
 
   } catch (error) {
@@ -94,19 +104,58 @@ router.get('/otp', async function (req, res, next) {
 });
 
 // Delete one user
-router.delete('/:id', getUserById, async (req, res) => {
+router.delete('/:id', getUserById, async (req, res, next) => {
   try {
-    //get all user articles and delete them
-    const user = await User.findById(res.user.id)
+    user = await User.findById(req.params.id)
+    if (user == null) {
+      return res.status(404).json({ reponse: "mail" })
+    }
 
-    //delete the user
-    await res.user.remove()
-    res.json({ reponse: "Supprime avec succes" })
   } catch (error) {
-    res.json({ erreur: error.message })
+    return res.status(500).json({ reponse: error.message })
   }
+  res.user = user
+  next()
 })
-// Confirme email
+
+async function checkToken(req, res, next) {
+  let token
+  try {
+    token = await Token.findOne({ email: req.body.email })
+
+  } catch (error) {
+    return res.status(500).json({ reponse: error.message })
+  }
+  res.token = token
+  next()
+}
+async function getUserById(req, res, next) {
+  let user
+  try {
+    user = await User.findById(req.params.id)
+    if (user == null) {
+      return res.status(404).json({ reponse: "Utilisateur non trouve" })
+    }
+  } catch (error) {
+    return res.status(500).json({ reponse: error.message })
+  }
+  res.user = user
+  next()
+}
+
+function authentificateToken(req, res, next) {
+  const autHeader = req.headers['authorization']
+  const token = autHeader && autHeader.split(' ')[1]
+
+  if (token == null) return res.status(401).json({ reponse: "no token" })
+
+  jwt.verify(token, "SECRET", (err, user) => {
+    if (err) return res.status(403).json({ reponse: "token invalide" })
+    req.user = user
+    next()
+  })
+
+}
 router.get('/confirmation/:email/:token', async (req, res, next) => {
   Token.findOne({ token: req.params.token }, function (err, token) {
     // token is not found into database i.e. token may have expired 
@@ -437,13 +486,17 @@ router.get('/confirmation/:email/:token', async (req, res, next) => {
   });
 
 });
-// Forgot password
-router.post('/forgotPassword', getUserByMail, (req, res, next) => {
 
+router.post('/forgotPassword', getUserByMail, checkToken, (req, res, next) => {
   // user is not found into database
   if (!res.user) {
     return res.status(400).send({ msg: 'We were unable to find a user with that email. Make sure your Email is correct!' });
-  } else {
+  } else if (res.token) {
+    return res.status(403).send({ token: res.token.token });
+
+  }
+
+  else {
     var seq = (Math.floor(Math.random() * 10000) + 10000).toString().substring(1);
     var token = new Token({ email: res.user.email, token: seq });
     console.log('i am a token' + token)
@@ -550,12 +603,6 @@ function authentificateToken(req, res, next) {
 
   if (token == null) return res.status(401).json({ reponse: "no token" })
 
-  jwt.verify(token, "SECRET", (err, user) => {
-    if (err) return res.status(403).json({ reponse: "token invalide" })
-    req.user = user
-    next()
-  })
-
 }
 
 async function getUserById(req, res, next) {
@@ -572,6 +619,17 @@ async function getUserById(req, res, next) {
   next()
 }
 
+router.delete('/:id', getUserById, async (req, res) => {
+  try {
+    //get all user articles and delete them
+    const user = await User.findById(res.user.id)
 
+    //delete the user
+    await res.user.remove()
+    res.json({ reponse: "Supprime avec succes" })
+  } catch (error) {
+    res.json({ erreur: error.message })
+  }
+})
 
 module.exports = router;

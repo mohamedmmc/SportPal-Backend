@@ -19,20 +19,19 @@ router.get('/', async function (req, res, next) {
 })
 
 //get all Tennis
-router.get('/get-Tennis', async function (req, res, next) {
-    const newsKoura = await myNews.find({ type: "Tennis" });
-    res.status(200).json({ news: newsKoura })
+router.get('/Tennis', async function (req, res, next) {
+    const news = await myNews.find({ type: "Tennis" });
+    res.status(200).json(news)
 })
 
 //get all Koora2
-router.get('/get-Koora2', async function (req, res, next) {
-    const newsKoura = await myNews.find({ type: "Football-Koora" });
-    res.status(200).json({ news: newsKoura })
+router.get('/Football', async function (req, res, next) {
+    const news = await myNews.find({ type: "Football" });
+    res.status(200).json(news)
 }
 )
 // Get From https://www.tennis.com/news/all-news/
-
-router.get('/Tennis', async function (req, res, next) {
+router.get('/get-Tennis', async function (req, res, next) {
     try {
         const browser = await puppeteer.launch({ headless: true, devtools: true });
 
@@ -108,7 +107,6 @@ router.get('/Tennis', async function (req, res, next) {
 });
 
 // Get From https://www.goalzz.com/
-
 router.get('/Goalzz/tennis', async function (req, res, next) {
     try {
         const browser = await puppeteer.launch({ headless: true });
@@ -126,12 +124,11 @@ router.get('/Goalzz/tennis', async function (req, res, next) {
                     imageURL: i,
                     title: element.querySelector('div.inline > a > strong')?.innerText.trim(),
                     desc: element.querySelector('div.inline > p')?.innerText.trim(),
+                    type: 'Tennis',
                 })
             }
             return news;
         });
-
-        console.log('Goalzz', news)
 
         await browser.close()
 
@@ -151,7 +148,6 @@ router.get('/Goalzz/tennis', async function (req, res, next) {
 });
 
 // Get From https://www.foot24.tn
-
 router.get('/Foot24', async function (req, res, next) {
     try {
         const browser = await puppeteer.launch({ headless: true });
@@ -164,12 +160,14 @@ router.get('/Foot24', async function (req, res, next) {
             let elements = document.querySelectorAll('div.dc-news-item');
             for (element of elements) {
                 let i = element.querySelector('.dc-image-cover')?.style.getPropertyValue('background-image').split("\"")[1]
-                news.push({
-                    imageURL: i,
-                    type: element.querySelector('.dc-cate')?.innerText.trim(),
-                    title: element.querySelector('.dc-cate-tle')?.innerText.trim(),
-                    type: 'Football-Foot24',
-                })
+                if (i != null) {
+                    news.push({
+                        imageURL: i,
+                        type: element.querySelector('.dc-cate')?.innerText.trim(),
+                        title: element.querySelector('.dc-cate-tle')?.innerText.trim(),
+                        type: 'Football',
+                    })
+                }
             }
             return news;
         });
@@ -194,7 +192,6 @@ router.get('/Foot24', async function (req, res, next) {
 });
 
 // Get From https://www.kooora.com/
-
 router.get('/Koora', async function (req, res, next) {
     try {
         const browser = await puppeteer.launch({ headless: true });
@@ -212,6 +209,7 @@ router.get('/Koora', async function (req, res, next) {
                     img: i,
                     title: element.querySelector('div.inline > a > strong')?.innerText.trim(),
                     desc: element.querySelector('div.inline > p')?.innerText.trim(),
+                    type: 'Football',
                 })
             }
             return news;
@@ -248,7 +246,7 @@ router.get('/Koora2', async function (req, res, next) {
                     imageURL: i,
                     title: element.querySelector('div.inline > a > strong')?.innerText.trim(),
                     desc: element.querySelector('div.inline > p')?.innerText.trim(),
-                    type: 'Football-Koora'
+                    type: 'Football'
                 })
             }
             return news;

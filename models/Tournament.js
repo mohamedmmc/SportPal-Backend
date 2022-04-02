@@ -1,6 +1,5 @@
 const mongoose = require('mongoose')
 
-//Changed on 12:20 4  mars Tournament
 
 const tournamentSchema = new mongoose.Schema({
     typeSport: {
@@ -29,17 +28,14 @@ const tournamentSchema = new mongoose.Schema({
         default: null
     },
     prize: {
-        type: Number,
-        default: null
+        type: Number
     },
     from: {
-        type: Date,
-        default: Date.now,
+        type: Date
     },
     to: {
         type: Date
-    },
-
+    }
 })
 
 module.exports = mongoose.model('tournament', tournamentSchema)

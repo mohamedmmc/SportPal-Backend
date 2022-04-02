@@ -43,6 +43,8 @@ router.post('/', multer, async (req, res) => {
     complexeOwner.profilePic = photoCloudinary.url
 
     console.log(photoCloudinary)
+  } else {
+    complexeOwner.profilePic = "https://res.cloudinary.com/dy05x9auh/image/upload/v1648226972/stadium_r4e5hx.png"
   }
 
   try {

@@ -1,6 +1,5 @@
 const mongoose = require('mongoose')
 
-//changed on 12:53 4 mars
 
 const teamSchema = new mongoose.Schema({
     players: [{
@@ -12,7 +11,8 @@ const teamSchema = new mongoose.Schema({
         ref: 'player'
     },
     typeSport: {
-        type: String
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'sport'
     },
 })
 

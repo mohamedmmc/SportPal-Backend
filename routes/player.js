@@ -6,14 +6,45 @@ var User = require('../models/User')
 var Player = require('../models/Player')
 var nodemailer = require("nodemailer");
 var Bcrypt = require('bcrypt')
-var jwt = require('jsonwebtoken')
+var jwt = require('jsonwebtoken');
+const Sport = require('../models/Sport');
 /* GET users listing. */
 
 
-router.get('/', async function (req, res, next) {
+router.get('/:id', async function (req, res, next) {
   try {
-    const player = await Player.find({type:"player"})
-    res.json(player)
+    let players = []
+    const player = await Player.find({ type: "player" })
+    if (player == null) {
+      res.status(404).json({ message: "no users" })
+    }
+    else {
+      for (i = 0; i < player.length; i++) {
+        if (player[i].id != req.params.id) {
+          players.push(player[i])
+        }
+      }
+    }
+    res.status(200).json({ players })
+  } catch (error) {
+      res.status(500).json({ message: error.message })
+    }
+  });
+
+router.get('/findBySport/', async function (req, res, next) {
+  var sportPlayer = []
+  try {
+    const player = await User.find({ type: "player" }).populate('')
+    console.log(player.sports)
+    for (i = 0; i < player.sports.length; i++) {
+
+    }
+    player.sports.forEach(element => {
+      if (element.sport == req.body.sports) {
+        sportPlayer.push(player)
+      }
+    });
+    res.json(sportPlayer)
   } catch (error) {
     res.status(500).json({ message: error.message })
   }
@@ -23,28 +54,32 @@ router.get('/', async function (req, res, next) {
 router.post('/', multer, async (req, res) => {
 
   await User.init();
-    
+
   const player = new Player({
     ...req.body,
+
   })
   if (req.body.password != null) {
     try {
-    const hashedPass = await Bcrypt.hash(req.body.password, 10)
-    player.password= hashedPass
-  } catch (error) {
-    return res.json({erreur:error.message})
-  }
+      const hashedPass = await Bcrypt.hash(req.body.password, 10)
+      player.password = hashedPass
+    } catch (error) {
+      return res.json({ erreur: error.message })
+    }
   }
   if (req.file != null) {
     const photoCloudinary = await cloudinary.uploader.upload(req.file.path)
     player.profilePic = photoCloudinary.url
+  } else {
+    player.profilePic = "https://res.cloudinary.com/dy05x9auh/image/upload/v1648226974/athlete_lxnnu3.png"
   }
   const token = jwt.sign({ username: player.email }, "SECRET")
   try {
     const newPlayer = await player.save()
     return res.status(201).json({
       user: newPlayer,
-    token:token})
+      token: token
+    })
   } catch (error) {
     return res.status(401).json({ message: error.message })
   }
@@ -289,19 +324,19 @@ router.post('/', multer, async (req, res) => {
 })
 
 /* Updating One */
-router.patch("/:id", multer, getPlayer, async (req, res) => {
+router.patch("/:id/", multer, getPlayer, async (req, res) => {
   if (req.body.team != null) {
-      res.player.team = req.body.team
+    res.player.team = req.body.team
   }
   if (req.body.sport != null) {
-      res.player.sport = req.body.sport
+    res.player.sport = req.body.sport
   }
   if (req.body.rating != null) {
-      res.player.rating = req.body.rating
+    res.player.rating = req.body.rating
   }
   if (req.body.description != null) {
     res.player.description = req.body.description
-}
+  }
   if (req.body.fullName != null) {
     res.player.fullName = req.body.fullName
   }
@@ -314,6 +349,21 @@ router.patch("/:id", multer, getPlayer, async (req, res) => {
   if (req.body.telNum != null) {
     res.player.telNum = req.body.telNum
   }
+
+  // if (req.body.strongHand != null && res.sport._id == '622f5416841f4493413f276f') {
+  //   res.player.sports[0].strongHand = req.body.strongHand
+  //   console.log(await Sport.findById(res.sport._id))
+  //   console.log("tennis")
+  // }
+
+
+  // if (res.sport._id == '622f543ef89ec3e99faf1042') {
+  //   console.log("football")
+  // }
+
+  if (req.body.strongLeg != null) {
+    res.player.sports[1].strongLeg = req.body.strongLeg
+  }
   if (req.file != null) {
     const photoCloudinary = await cloudinary.uploader.upload(req.file.path)
     console.log(photoCloudinary)
@@ -322,10 +372,10 @@ router.patch("/:id", multer, getPlayer, async (req, res) => {
 
   try {
     const updatedTeam = await res.player.save()
-    
-      res.status(200).json({ user: updatedTeam })
+
+    res.status(200).json({ user: updatedTeam })
   } catch (error) {
-      res.status(400).json({ message: error.message })
+    res.status(400).json({ message: error.message })
 
   }
 })
@@ -335,15 +385,37 @@ async function getPlayer(req, res, next) {
   let player
   try {
     player = await User.findById(req.params.id)
-      if (player == null) {
-          return res.status(404).json({ message: 'Cannot find player' })
-      }
+    if (player == null) {
+      return res.status(404).json({ message: 'Cannot find player' })
+    }
   } catch (error) {
-      return res.status(500).json({ message: error.message })
+    return res.status(500).json({ message: error.message })
   }
 
   res.player = player
   next()
 }
 
+async function getSport(req, res, next) {
+  let sport
+  try {
+    sport = await Sport.findById(req.params.idSport)
+    if (sport == null) {
+      return res.status(404).json({ message: 'Cannot find sport' })
+    }
+  } catch (error) {
+    return res.status(500).json({ message: error.message })
+  }
+
+  res.sport = sport
+  next()
+}
+
+function authentificateToken(req, res, next) {
+  const autHeader = req.headers['authorization']
+  const token = autHeader && autHeader.split(' ')[1]
+
+  if (token == null) return res.status(401).json({ reponse: "no token" })
+
+}
 module.exports = router;

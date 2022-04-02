@@ -3,7 +3,7 @@ var router = express.Router();
 var multer = require('../middleware/multer')
 var Sport = require('../models/Sport')
 
-/* GET All Sport. /
+// GET All Sport. /
 router.get('/', async function (req, res, next) {
     try {
         const sports = await Sport.find()
@@ -13,7 +13,7 @@ router.get('/', async function (req, res, next) {
     }
 });
 
-/ Creating One Sport /
+// Creating One Sport /
 router.post("/", multer, async (req, res, next) => {
 
     const sport = new Sport({
@@ -29,7 +29,7 @@ router.post("/", multer, async (req, res, next) => {
     }
 })
 
-/ Updating One /
+// Updating One /
 router.patch("/:id", multer, getSport, async (req, res) => {
 
     if (req.body.type != null) {
@@ -44,7 +44,7 @@ router.patch("/:id", multer, getSport, async (req, res) => {
     }
 })
 
-/ Deleting One /
+// Deleting One /
 router.delete("/:id", getSport, async (req, res) => {
     try {
         await res.sport.remove()
@@ -57,8 +57,8 @@ router.delete("/:id", getSport, async (req, res) => {
 
 // MiddleWares
 
-/Sport by ID 
-*/
+//Sport by ID 
+
 async function getSport(req, res, next) {
     let sport
     try {
