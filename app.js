@@ -18,7 +18,7 @@ var teamRouter = require('./routes/team');
 var matchRouter = require('./routes/match');
 var tournamentRouter = require('./routes/tournament');
 var sportRouter = require('./routes/sport');
-
+var notificationRouter = require('./routes/notification');
 var app = express();
 
 //connexion DB
@@ -49,5 +49,6 @@ app.use('/team', teamRouter);
 app.use('/match', matchRouter);
 app.use('/tournament', tournamentRouter);
 app.use('/sport', sportRouter);
+app.use('/notification', notificationRouter);
 
 module.exports = app;

@@ -14,6 +14,10 @@ const notificationSchema = new mongoose.Schema({
     },
     sent: {
         type: Boolean
+    },
+    accept: {
+        type: Boolean,
+        default: false
     }
 })
 
