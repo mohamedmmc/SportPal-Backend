@@ -35,10 +35,15 @@ router.get('/:id', async function (req, res, next) {
 });
 
 /* Creating One notificaiton */
-router.post("/", async (req, res, next) => {
+router.post("/request-match", getNotification, async (req, res, next) => {
+
+    var to = []
 
     const notification = new Notification({
-        ...req.body
+        from: req.body.from,
+        to: req.body.to,
+        description: "send you a request for a match",
+        type: "match request"
     })
 
     try {
@@ -79,9 +84,10 @@ router.post("/", async (req, res, next) => {
 // })
 
 /* Deleting One */
-router.delete("/:id", getNotification, async (req, res) => {
+router.delete("/:id", async (req, res) => {
     try {
-        await res.notification.remove()
+        const notification = await Notification.findById(req.params.id)
+        await notification.remove()
         res.json({ message: 'Deleted match' })
     } catch (error) {
         res.status(500).json({ message: error.message })
@@ -96,10 +102,18 @@ router.delete("/:id", getNotification, async (req, res) => {
 async function getNotification(req, res, next) {
     let notification
     try {
-        notification = await Notification.findById(req.params.id)
-        if (notification == null) {
-            return res.status(404).json({ message: 'Cannot find match' })
+        notification = await Notification.find({ from: req.body.from })
+        // if (notification == null) {
+        //     return res.status(404).json({ message: 'Cannot find match' })
+        // }
+        for (i = 0; i < notification.length; i++) {
+            for (j = 0; j < notification[i].to.length; j++) {
+                if (notification[i].to[j] == req.body.to) {
+                    return res.status(401).json("duplicate")
+                }
+            }
         }
+
     } catch (error) {
         return res.status(500).json({ message: error.message })
     }

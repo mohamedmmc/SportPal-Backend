@@ -12,16 +12,6 @@ var nodemailer = require("nodemailer");
 router.get('/', async function (req, res, next) {
   try {
     const user = await User.find()
-    for (i = 0; i < user.length; i++) {
-      if (user[i].profilPic == null) {
-        user[i].fullName = "test"
-        try {
-          await user[i].save();
-        } catch (error) {
-          console.log(error.message)
-        }
-      }
-    }
     res.json(user)
   } catch (error) {
     res.status(500).json({ message: error.message })
