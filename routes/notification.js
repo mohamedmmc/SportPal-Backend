@@ -22,9 +22,24 @@ router.get('/', async function (req, res, next) {
 /* GET User notification. */
 router.get('/:id', async function (req, res, next) {
     try {
-        const notifications = await Notification.find({ user: req.params.id })
+        var notification = []
+        const notifications = await Notification.find({}).populate('to').populate('from');
         if (notifications != null) {
-            res.status(200).json(notifications)
+            for (i = 0; i < notifications.length; i++) {
+
+                if (notifications[i].from._id == req.params.id) {
+
+                    notification.push(notifications[i])
+                }
+                for (j = 0; j < notifications[i].to.length; j++) {
+                    console.log(notifications[i].to);
+                    if (notifications[i].to[j].id == req.params.id) {
+
+                        notification.push(notifications[i])
+                    }
+                }
+            }
+            res.status(200).json(notification)
         }
         else {
             res.status(404)
@@ -42,8 +57,8 @@ router.post("/request-match", getNotification, async (req, res, next) => {
     const notification = new Notification({
         from: req.body.from,
         to: req.body.to,
-        description: "send you a request for a match",
-        type: "match request"
+        description: "Sent you a request for a match",
+        type: "Match request"
     })
 
     try {
@@ -51,6 +66,28 @@ router.post("/request-match", getNotification, async (req, res, next) => {
         res.status(201).json({ newNotification });
     } catch (error) {
         res.status(400).json({ message: error.message })
+    }
+})
+
+
+/* Confirm Notification */
+router.post("/confirm", async (req, res, next) => {
+
+    try {
+        const notification = await Notification.find({ from: req.body.from })
+        for (i = 0; i < notification.length; i++) {
+            for (j = 0; j < notification[i].to.length; j++) {
+                if (notification[i].to[j] == req.body.to) {
+                    notification[i].accept = true;
+                    const done = await notification[i].save();
+                    return res.status(201).json({ done });
+                }
+            }
+        }
+
+
+    } catch (error) {
+        res.status(500).json({ message: error.message })
     }
 })
 
@@ -84,11 +121,19 @@ router.post("/request-match", getNotification, async (req, res, next) => {
 // })
 
 /* Deleting One */
-router.delete("/:id", async (req, res) => {
+router.delete("/deleteMYnotif", async (req, res) => {
+
     try {
-        const notification = await Notification.findById(req.params.id)
-        await notification.remove()
-        res.json({ message: 'Deleted match' })
+        const notification = await Notification.find({ from: req.body.from })
+        for (i = 0; i < notification.length; i++) {
+            for (j = 0; j < notification[i].to.length; j++) {
+                if (notification[i].to[j] == req.body.to) {
+                    const aaa = await notification[i].remove()
+                }
+            }
+        }
+
+        res.status(200).json({ message: 'Deleted match' })
     } catch (error) {
         res.status(500).json({ message: error.message })
     }
