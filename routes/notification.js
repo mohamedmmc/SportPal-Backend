@@ -147,16 +147,17 @@ router.delete("/deleteMYnotif", async (req, res) => {
 async function getNotification(req, res, next) {
     let notification
     try {
-        notification = await Notification.find({ from: req.body.from })
+        notification = await Notification.find()
         // if (notification == null) {
         //     return res.status(404).json({ message: 'Cannot find match' })
         // }
         for (i = 0; i < notification.length; i++) {
-            for (j = 0; j < notification[i].to.length; j++) {
-                if (notification[i].to[j] == req.body.to) {
-                    return res.status(401).json("duplicate")
+            if (notification[i].from == req.body.to || notification[i].from == req.body.from)
+                for (j = 0; j < notification[i].to.length; j++) {
+                    if (notification[i].to[j] == req.body.to || notification[i].to[j] == req.body.from) {
+                        return res.status(401).json("duplicate")
+                    }
                 }
-            }
         }
 
     } catch (error) {
