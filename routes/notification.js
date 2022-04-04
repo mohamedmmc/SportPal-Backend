@@ -57,8 +57,8 @@ router.post("/request-match", getNotification, async (req, res, next) => {
     const notification = new Notification({
         from: req.body.from,
         to: req.body.to,
-        description: "Sent you a request for a match",
-        type: "Match request"
+        description: "Sent you a friend request for a match",
+        type: "Friend request"
     })
 
     try {

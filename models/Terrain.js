@@ -12,6 +12,15 @@ const terrainSchema = new mongoose.Schema({
     picture: {
         type: String
     },
+    name: {
+        type: String
+    },
+    location: {
+        type: String
+    },
+    rating: {
+        type: Number
+    }
 })
 
 module.exports = mongoose.model('terrain', terrainSchema)

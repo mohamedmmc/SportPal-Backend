@@ -6,13 +6,20 @@ const complexeSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'complexeOwner'
     },
-    terrain: [{
+    terrains: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'terrain'
     }],
     address: {
         type: String,
     },
+    name: {
+        type: String
+    },
+
+    picture: {
+        type: String
+    }
 })
 
 module.exports = mongoose.model('complexe', complexeSchema)

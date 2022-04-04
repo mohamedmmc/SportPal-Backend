@@ -5,7 +5,7 @@ var Player = require('../models/Player')
 var Arbitre = require('../models/arbitre')
 var Team = require('../models/Team')
 var Match = require('../models/Match')
-
+var Notification = require('../models/Notification')
 /* GET All Teams. */
 router.get('/', async function (req, res, next) {
     try {
@@ -17,30 +17,46 @@ router.get('/', async function (req, res, next) {
 });
 
 /* Creating One Team */
-router.post("/", async (req, res, next) => {
+router.post("/indivMatch", async (req, res, next) => {
 
+    const matchs = await Match.find().populate("teamA").populate("teamB")
+    for (i = 0; i < matchs.length; i++) {
+        if (matchs[i].teamA.players[0]._id == req.body.teamA || matchs[i].teamA.players[0]._id == req.body.teamB || matchs[i].teamB.players[0]._id == req.body.teamA || matchs[i].teamB.players[0]._id == req.body.teamB) {
+            return res.status(403).json('duplicate')
+        }
+    }
     const teamA = new Team({
-        ...req.body
+        players: req.body.teamA
     })
     const teamB = new Team({
-        ...req.body
+        players: req.body.teamB
     })
-    const arbitre = new Arbitre({
-        ...req.body
-    })
+    // const arbitre = new Arbitre({
+    //     ...req.body
+    // })
     // const terrain = new Terrain({
     //     ...req.body
     // })
     const match = new Match({
         ...req.body,
-        teamA: teamA,
-        teamB: teamB,
-        arbitre: arbitre,
+        teamA: teamA._id,
+        teamB: teamB._id,
+
     })
-    console.log("Posted Successfuly" + match)
+
+    const notification = new Notification({
+        from: teamA.players[0],
+        to: teamB.players[0],
+        description: "Sent you a match request",
+        date: req.body.date,
+        type: "Match request"
+    })
     try {
+        await notification.save();
+        await teamA.save();
+        await teamB.save();
         const newMatch = await match.save();
-        res.status(201).json({ newMatch });
+        res.status(201).json(newMatch);
     } catch (error) {
         res.status(400).json({ message: error.message })
     }

@@ -14,7 +14,10 @@ const matchSchema = new mongoose.Schema({
         type: String
     },
     date: {
-        type: Date
+        type: String
+    },
+    time: {
+        type: String
     },
     terrain: {
         type: mongoose.Schema.Types.ObjectId,
