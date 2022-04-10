@@ -16,7 +16,10 @@ const tournamentSchema = new mongoose.Schema({
         ref: 'user',
     },
     participants: [{
-        _id: false, team: { type: mongoose.Schema.Types.ObjectId, ref: 'team' }, points: Number, isEliminated: Boolean,
+        _id: false,
+        team: { type: mongoose.Schema.Types.ObjectId, ref: 'team' },
+        points: Number,
+        isEliminated: Boolean,
     }],
     matchs: [{
         type: mongoose.Schema.Types.ObjectId,

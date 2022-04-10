@@ -22,6 +22,7 @@ router.post("/indivMatch", async (req, res, next) => {
     const matchs = await Match.find().populate("teamA").populate("teamB")
     for (i = 0; i < matchs.length; i++) {
         if (matchs[i].teamA.players[0]._id == req.body.teamA || matchs[i].teamA.players[0]._id == req.body.teamB || matchs[i].teamB.players[0]._id == req.body.teamA || matchs[i].teamB.players[0]._id == req.body.teamB) {
+            
             return res.status(403).json('duplicate')
         }
     }

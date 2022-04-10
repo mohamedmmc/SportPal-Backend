@@ -32,7 +32,7 @@ router.get('/:id', async function (req, res, next) {
                     notification.push(notifications[i])
                 }
                 for (j = 0; j < notifications[i].to.length; j++) {
-                    console.log(notifications[i].to);
+                    //console.log(notifications[i].to);
                     if (notifications[i].to[j].id == req.params.id) {
 
                         notification.push(notifications[i])
@@ -50,14 +50,14 @@ router.get('/:id', async function (req, res, next) {
 });
 
 /* Creating One notificaiton */
-router.post("/request-match", getNotification, async (req, res, next) => {
+router.post("/friend-request", getNotification, async (req, res, next) => {
 
     var to = []
 
     const notification = new Notification({
         from: req.body.from,
         to: req.body.to,
-        description: "Sent you a friend request for a match",
+        description: "Sent you a friend request",
         type: "Friend request"
     })
 
@@ -68,6 +68,28 @@ router.post("/request-match", getNotification, async (req, res, next) => {
         res.status(400).json({ message: error.message })
     }
 })
+
+
+/* Creating One notificaiton */
+router.post("/match-request", getNotification, async (req, res, next) => {
+
+    var to = []
+
+    const notification = new Notification({
+        from: req.body.from,
+        to: req.body.to,
+        description: "Sent you a match request",
+        type: "Match request"
+    })
+
+    try {
+        const newNotification = await notification.save();
+        res.status(201).json({ newNotification });
+    } catch (error) {
+        res.status(400).json({ message: error.message })
+    }
+})
+
 
 
 /* Confirm Notification */
@@ -129,11 +151,13 @@ router.delete("/deleteMYnotif", async (req, res) => {
             for (j = 0; j < notification[i].to.length; j++) {
                 if (notification[i].to[j] == req.body.to) {
                     const aaa = await notification[i].remove()
+                    return res.status(200).json({ message: 'Deleted match' })
                 }
             }
         }
+        return res.status(400).json({message:"probleme"})
 
-        res.status(200).json({ message: 'Deleted match' })
+        
     } catch (error) {
         res.status(500).json({ message: error.message })
     }
@@ -155,7 +179,9 @@ async function getNotification(req, res, next) {
             if (notification[i].from == req.body.to || notification[i].from == req.body.from)
                 for (j = 0; j < notification[i].to.length; j++) {
                     if (notification[i].to[j] == req.body.to || notification[i].to[j] == req.body.from) {
-                        return res.status(401).json("duplicate")
+                        if (!notification[i].accept) {
+                            return res.status(401).json("duplicate")
+                        }
                     }
                 }
         }

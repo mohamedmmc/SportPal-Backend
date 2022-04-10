@@ -10,7 +10,6 @@ const mongoose = require("mongoose")
 //var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 var playerRouter = require('./routes/player');
-var ComplexeOwnerRouter = require('./routes/complexeOwn');
 var AdminRouter = require('./routes/admin');
 var ArbitreRouter = require('./routes/arbitre');
 var newsRouter = require('./routes/news');
@@ -43,7 +42,6 @@ app.use(express.static(path.join(__dirname, 'upload')));
 //app.use('/', indexRouter);
 app.use('/user', usersRouter);
 app.use('/player', playerRouter);
-app.use('/complexeOwner', ComplexeOwnerRouter);
 app.use('/admin', AdminRouter);
 app.use('/arbitre', ArbitreRouter);
 app.use('/news', newsRouter);
