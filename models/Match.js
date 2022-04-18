@@ -27,6 +27,12 @@ const matchSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'arbitre'
     }],
+    scoreA: [{
+        type: String
+    }],
+    scoreB: [{
+        type: String
+    }],
 })
 
 module.exports = mongoose.model('match', matchSchema)

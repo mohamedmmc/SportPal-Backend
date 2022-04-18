@@ -15,6 +15,9 @@ const playerSchema = new mongoose.Schema({
         },
         strongLeg: String,
         strongHand: String,
+        favCourt: String,
+        knowledge: String,
+        idol:String
     }],
     rating: {
         type: String

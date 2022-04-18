@@ -19,6 +19,7 @@ var tournamentRouter = require('./routes/tournament');
 var sportRouter = require('./routes/sport');
 var notificationRouter = require('./routes/notification');
 var complexeRouter = require('./routes/complexe');
+var complexeOwnerRouter = require('./routes/complexeOwner');
 var TerrainRouter = require('./routes/terrain');
 var app = express();
 
@@ -40,6 +41,7 @@ app.use(express.static(path.join(__dirname, 'upload')));
 //Routes
 
 //app.use('/', indexRouter);
+app.use('/complexeowner', complexeOwnerRouter);
 app.use('/user', usersRouter);
 app.use('/player', playerRouter);
 app.use('/admin', AdminRouter);

@@ -49,7 +49,7 @@ router.post('/', multer, async (req, res) => {
 
   try {
     const newComplexe = await complexeOwner.save()
-    return res.status(201).json(newComplexe)
+    return res.status(201).json({ user: newComplexe })
   } catch (error) {
     return res.status(400).json({ message: error.message })
   }

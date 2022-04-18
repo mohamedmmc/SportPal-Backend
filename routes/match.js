@@ -2,15 +2,43 @@ var express = require('express');
 var router = express.Router();
 var multer = require('../middleware/multer')
 var Player = require('../models/Player')
-var Arbitre = require('../models/arbitre')
 var Team = require('../models/Team')
 var Match = require('../models/Match')
-var Notification = require('../models/Notification')
+var Notification = require('../models/Notification');
+const User = require('../models/User');
+
 /* GET All Teams. */
 router.get('/', async function (req, res, next) {
     try {
-        const matchs = await Match.find()
+        const matchs = await Match.find().populate('teamA').populate('teamB')
+
         res.json(matchs)
+    } catch (error) {
+        res.status(500).json({ message: error.message })
+    }
+});
+
+/* GET All Teams. */
+router.get('/:id', async function (req, res, next) {
+    let mymatchs = []
+    let listPlayers
+    try {
+        const matchs = await Match.find().populate({ path: 'teamA', populate: { path: 'players' } })
+            .populate({ path: 'teamB', populate: { path: 'players' } })
+            .populate('terrain')
+
+
+        listPlayers = await Team.find({ teamA: matchs.teamA }).populate('players')
+        console.log(matchs[0].teamA.players[0]);
+
+        // matchs.forEach((el) => {
+        //     if (el.teamA.players.includes(req.params.id) || el.teamB.players.includes(req.params.id)) {
+
+        //         mymatchs.push(el)
+        //     }
+        // })
+        // if(matchs.teamA.players)
+        res.status(200).json(matchs)
     } catch (error) {
         res.status(500).json({ message: error.message })
     }
@@ -19,14 +47,17 @@ router.get('/', async function (req, res, next) {
 /* Creating One Team */
 router.post("/indivMatch", async (req, res, next) => {
 
+
     const matchs = await Match.find().populate("teamA").populate("teamB")
-    for (i = 0; i < matchs.length; i++) {
-        if (matchs[i].teamA.players[0]._id == req.body.teamA || matchs[i].teamA.players[0]._id == req.body.teamB || matchs[i].teamB.players[0]._id == req.body.teamA || matchs[i].teamB.players[0]._id == req.body.teamB) {
-            
-            return res.status(403).json('duplicate')
+    if (matchs) {
+        for (i = 0; i < matchs.length; i++) {
+            if ((matchs[i].teamA.players[0]._id == req.body.teamA && matchs[i].teamB.players[0]._id == req.body.teamB) ||
+               ( matchs[i].teamB.players[0]._id == req.body.teamA && matchs[i].teamB.players[0]._id == req.body.teamA)) {
+                return res.status(403).json('duplicate')
+            }
         }
-    }
-    const teamA = new Team({
+
+    } const teamA = new Team({
         players: req.body.teamA
     })
     const teamB = new Team({
@@ -45,15 +76,13 @@ router.post("/indivMatch", async (req, res, next) => {
 
     })
 
-    const notification = new Notification({
-        from: teamA.players[0],
-        to: teamB.players[0],
-        description: "Sent you a match request",
-        date: req.body.date,
-        type: "Match request"
-    })
+
+
+    const notif = await Notification.findById(req.body.id)
+
+
     try {
-        await notification.save();
+        await notif.remove();
         await teamA.save();
         await teamB.save();
         const newMatch = await match.save();

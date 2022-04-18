@@ -1,16 +1,15 @@
 var express = require('express');
 var router = express.Router();
 var multer = require('../middleware/multer')
-var Arbitre = require('../models/arbitre')
 var Team = require('../models/Team')
 var Notification = require('../models/Notification')
 
 /* GET all notification. */
 router.get('/', async function (req, res, next) {
     try {
-        const notifications = await Notification.find()
+        const notifications = await Notification.find().populate('from').populate('to')
 
-        res.status(200).json(notifications)
+        res.status(200).json({ length: notifications })
 
     } catch (error) {
         res.status(500).json({ message: error.message })
@@ -23,7 +22,7 @@ router.get('/', async function (req, res, next) {
 router.get('/:id', async function (req, res, next) {
     try {
         var notification = []
-        const notifications = await Notification.find({}).populate('to').populate('from');
+        const notifications = await Notification.find().populate('to').populate('from');
         if (notifications != null) {
             for (i = 0; i < notifications.length; i++) {
 
@@ -50,7 +49,7 @@ router.get('/:id', async function (req, res, next) {
 });
 
 /* Creating One notificaiton */
-router.post("/friend-request", getNotification, async (req, res, next) => {
+router.post("/friend-request", getNotificationFriend, async (req, res, next) => {
 
     var to = []
 
@@ -71,7 +70,7 @@ router.post("/friend-request", getNotification, async (req, res, next) => {
 
 
 /* Creating One notificaiton */
-router.post("/match-request", getNotification, async (req, res, next) => {
+router.post("/match-request", getNotificationMatch, async (req, res, next) => {
 
     var to = []
 
@@ -106,7 +105,6 @@ router.post("/confirm", async (req, res, next) => {
                 }
             }
         }
-
 
     } catch (error) {
         res.status(500).json({ message: error.message })
@@ -145,41 +143,47 @@ router.post("/confirm", async (req, res, next) => {
 /* Deleting One */
 router.delete("/deleteMYnotif", async (req, res) => {
 
+
     try {
         const notification = await Notification.find({ from: req.body.from })
         for (i = 0; i < notification.length; i++) {
             for (j = 0; j < notification[i].to.length; j++) {
-                if (notification[i].to[j] == req.body.to) {
+                if ((notification[i].to[j] == req.body.to && notification[i].type == "Match request")) {
                     const aaa = await notification[i].remove()
                     return res.status(200).json({ message: 'Deleted match' })
                 }
             }
         }
-        return res.status(400).json({message:"probleme"})
+        return res.status(400).json({ message: "problem" })
 
-        
+
     } catch (error) {
         res.status(500).json({ message: error.message })
     }
 })
 
 
+router.delete("/:id", getMyNotification, async (req, res) => {
+    try {
+        await res.notification.remove()
+        res.json({ message: 'Deleted notification' })
+    } catch (error) {
+        res.status(500).json({ message: error.message })
+    }
+})
 // MiddleWares
 
 /*User by ID 
 */
-async function getNotification(req, res, next) {
+async function getNotificationFriend(req, res, next) {
     let notification
     try {
         notification = await Notification.find()
-        // if (notification == null) {
-        //     return res.status(404).json({ message: 'Cannot find match' })
-        // }
         for (i = 0; i < notification.length; i++) {
             if (notification[i].from == req.body.to || notification[i].from == req.body.from)
                 for (j = 0; j < notification[i].to.length; j++) {
                     if (notification[i].to[j] == req.body.to || notification[i].to[j] == req.body.from) {
-                        if (!notification[i].accept) {
+                        if ((notification[i].accept && notification[i].type == "Friend request") || !notification[i].accept) {
                             return res.status(401).json("duplicate")
                         }
                     }
@@ -193,5 +197,46 @@ async function getNotification(req, res, next) {
     res.notification = notification
     next()
 }
+
+async function getNotificationMatch(req, res, next) {
+    let notification
+    try {
+        notification = await Notification.find()
+        for (i = 0; i < notification.length; i++) {
+            if (notification[i].from == req.body.to || notification[i].from == req.body.from)
+                for (j = 0; j < notification[i].to.length; j++) {
+                    if (notification[i].to[j] == req.body.to || notification[i].to[j] == req.body.from) {
+                        if ((notification[i].accept && notification[i].type == "Match request") || !notification[i].accept) {
+                            return res.status(401).json("duplicate")
+                        }
+                    }
+                }
+        }
+
+    } catch (error) {
+        return res.status(500).json({ message: error.message })
+    }
+
+    res.notification = notification
+    next()
+}
+
+
+
+async function getMyNotification(req, res, next) {
+    let notification
+    try {
+        notification = await Notification.findById(req.params.id)
+        if (notification == null) {
+            return res.status(404).json({ message: 'Cannot find notification' })
+        }
+    } catch (error) {
+        return res.status(500).json({ message: error.message })
+    }
+
+    res.notification = notification
+    next()
+}
+
 
 module.exports = router;

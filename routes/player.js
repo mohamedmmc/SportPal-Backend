@@ -8,28 +8,49 @@ var nodemailer = require("nodemailer");
 var Bcrypt = require('bcrypt')
 var jwt = require('jsonwebtoken');
 const Sport = require('../models/Sport');
+var Notification = require('../models/Notification');
+
 /* GET users listing. */
 
+
+router.get('/', async function (req, res, next) {
+  try {
+    const player = await Player.find({ type: "player" })
+    res.status(200).json({ player })
+  } catch (error) {
+    res.status(500).json({ message: error.message })
+  }
+});
 
 router.get('/:id', async function (req, res, next) {
   try {
     let players = []
     const player = await Player.find({ type: "player" })
+    let notifs = []
+    const notifications = await Notification.find()
     if (player == null) {
       res.status(404).json({ message: "no users" })
     }
     else {
       for (i = 0; i < player.length; i++) {
         if (player[i].id != req.params.id) {
-          players.push(player[i])
+          for (j = 0; j < notifications.length; j++) {
+
+            if ((notifications[j].type == "Friend request" && (player[i].id == notifications[j].from || player[i].id == notifications[j].to[0])))
+              players.push(player[i])
+            console.log(notifications[j]);
+
+          }
+
         }
       }
     }
     res.status(200).json({ players })
-  } catch (error) {
-      res.status(500).json({ message: error.message })
-    }
-  });
+  }
+  catch (error) {
+    res.status(500).json({ message: error.message })
+  }
+});
 
 router.get('/findBySport/', async function (req, res, next) {
   var sportPlayer = []
@@ -49,6 +70,17 @@ router.get('/findBySport/', async function (req, res, next) {
     res.status(500).json({ message: error.message })
   }
 });
+class sports {
+  constructor(sport, strongLeg, strongHand, favCourt, knowledge, idol) {
+    this.sport = sport;
+    this.strongLeg = strongLeg;
+    this.strongHand = strongHand;
+    this.favCourt = favCourt;
+    this.knowledge = knowledge;
+    this.idol = idol;
+  }
+}
+
 
 //add player
 router.post('/', multer, async (req, res) => {
@@ -325,30 +357,39 @@ router.post('/', multer, async (req, res) => {
 
 /* Updating One */
 router.patch("/:id/", multer, getPlayer, async (req, res) => {
+
+  const sportFront = new sports(req.body.sports, req.body.strongLeg, req.body.strongHand, req.body.favCourt, req.body.knowledge, req.body.idol)
+
+  console.log(sportFront);
+
   if (req.body.team != null) {
     res.player.team = req.body.team
   }
-  if (req.body.sport != null) {
-    res.player.sport = req.body.sport
+  ///*****/
+
+  if (req.body.sports != null) {
+    if (res.player.sports.length == 0) {
+      res.player.sports.push(sportFront)
+    } else {
+      for (i = 0; i < res.player.sports.length; i++) {
+        if (req.body.sports == res.player.sports[i].sport) {
+          res.player.sports[i] = sportFront
+          break
+        } if (res.player.sports.length - 1 == i) {
+          res.player.sports.push(sportFront)
+        }
+      }
+    }
   }
+
+
   if (req.body.rating != null) {
     res.player.rating = req.body.rating
   }
   if (req.body.description != null) {
     res.player.description = req.body.description
   }
-  if (req.body.fullName != null) {
-    res.player.fullName = req.body.fullName
-  }
-  if (req.body.birthDate != null) {
-    res.player.birthDate = req.body.birthDate
-  }
-  if (req.body.email != null) {
-    res.player.email = req.body.email
-  }
-  if (req.body.telNum != null) {
-    res.player.telNum = req.body.telNum
-  }
+
 
   // if (req.body.strongHand != null && res.sport._id == '622f5416841f4493413f276f') {
   //   res.player.sports[0].strongHand = req.body.strongHand
@@ -361,9 +402,7 @@ router.patch("/:id/", multer, getPlayer, async (req, res) => {
   //   console.log("football")
   // }
 
-  if (req.body.strongLeg != null) {
-    res.player.sports[1].strongLeg = req.body.strongLeg
-  }
+
   if (req.file != null) {
     const photoCloudinary = await cloudinary.uploader.upload(req.file.path)
     console.log(photoCloudinary)

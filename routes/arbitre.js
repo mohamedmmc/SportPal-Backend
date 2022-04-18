@@ -3,13 +3,13 @@ var router = express.Router();
 var multer = require('../middleware/multer')
 var cloudinary = require('../middleware/cloudinary')
 var User = require('../models/User')
-var Arbitre = require('../models/arbitre')
+var Arbitre = require('../models/Arbitre')
 var Token = require('../models/Token')
 var nodemailer = require("nodemailer");
 var jwt = require('jsonwebtoken')
 var Bcrypt = require('bcrypt')
 var crypto = require('crypto')
-
+var multerF = require('../middleware/multer-file')
 /* GET arbitre listing. */
 router.get('/', async function (req, res, next) {
   try {
@@ -25,20 +25,30 @@ router.post('/', multer, async (req, res) => {
   //await User.init();
   //const photoCloudinary = await cloudinary.uploader.upload(req.file.path)
 
-  const hashedPass = await Bcrypt.hash(req.body.password, 10)
+  
+  
 
   const arbitre = new Arbitre({
     ...req.body,
-    password: hashedPass
   })
   if (req.file != null) {
     const photoCloudinary = await cloudinary.uploader.upload(req.file.path)
-    arbitre.picture = photoCloudinary.url
+    arbitre.profilePic = photoCloudinary.url
   } else {
     arbitre.profilePic = "https://res.cloudinary.com/dy05x9auh/image/upload/v1648226974/referee_zj8rfh.png"
   }
-  const newArbitre = await arbitre.save()
-  return res.status(201).json(newArbitre)
+  if (req.body.password != null) {
+    const hashedPass = await Bcrypt.hash(req.body.password, 10)
+    arbitre.password = hashedPass
+  }
+  try {
+    const newArbitre = await arbitre.save()
+    return res.status(201).json({ user: newArbitre })
+  } catch (error) {
+    res.status(400).json({ error: error.message })
+  }
+
+
 
 
   //   try {
@@ -280,4 +290,38 @@ router.post('/', multer, async (req, res) => {
   // }
 })
 
+
+router.post('/file/:id', multerF, getReferee, async (req, res) => {
+  const refereee = await res.referee
+  if (refereee) {
+    //console.log(req.file.filename)
+    refereee.file = req.file.filename
+  }
+  console.log(refereee)
+  try {
+
+    const newreferee = await refereee.save()
+    return res.status(201).json({ newreferee })
+  } catch (error) {
+    return res.status(400).json(error)
+  }
+})
+
+
+
+
+async function getReferee(req, res, next) {
+  let referee
+  try {
+    referee = await User.findById(req.params.id)
+    if (referee == null) {
+      return res.status(404).json({ message: 'Cannot find referee ! ' })
+    }
+  } catch (error) {
+    return res.status(500).json({ message: error.message })
+  }
+
+  res.referee = referee
+  next()
+}
 module.exports = router;

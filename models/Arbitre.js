@@ -6,9 +6,10 @@ const arbitreSchema = new mongoose.Schema({
         type: String,
     },
     price: {
-        type: Number,
+        type: String,
     },
     available: {
+        default: true,
         type: Boolean,
     },
     file: {
@@ -16,7 +17,7 @@ const arbitreSchema = new mongoose.Schema({
     },
     sport: {
         type: String,
-        enum : ['Football','Tennis','Basketball']
+        enum: ['Football', 'Tennis', 'Basketball']
     }
 })
 module.exports = User.discriminator('arbitre', arbitreSchema)
