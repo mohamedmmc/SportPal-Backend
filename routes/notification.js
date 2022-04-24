@@ -105,6 +105,7 @@ router.post("/confirm", getUsers, async (req, res, next) => {
                         res.user1.friends.push(req.body.to)
                         res.user2.friends.push(req.body.from)
                     }
+                    
                     const done = await res.user1.save();
                     const aaa = await res.user2.save();
                     const dbone = await notification[i].save();
@@ -219,7 +220,6 @@ async function getUsers(req, res, next) {
         return res.status(500).json({ message: error.message })
     }
 
-    console.log(user1 + user2);
     res.user1 = user1
     res.user2 = user2
     next()
