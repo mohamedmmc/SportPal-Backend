@@ -106,7 +106,7 @@ router.post("/confirm", getUsers, async (req, res, next) => {
                     }
                     const done = await res.user1.save();
                     const aaa = await res.user2.save();
-                    const dbone = await notification.save();
+                    const dbone = await notification[i].save();
                     return res.status(201).json({ done });
                 }
             }

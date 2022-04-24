@@ -21,6 +21,26 @@ router.get('/', async function (req, res, next) {
     res.status(500).json({ message: error.message })
   }
 });
+router.delete('/friends/:id', async function (req, res, next) {
+  try {
+    let players = []
+    const player = await User.findById(req.params.id).populate('friends')
+
+    if (player == null) {
+      res.status(404).json({ message: "no users" })
+    }
+    else {
+      for (i = 0; i < player.friends.length; i++) {
+        players.push(player.friends[i])
+
+      }
+    }
+    res.status(200).json({ players })
+  }
+  catch (error) {
+    res.status(500).json({ message: error.message })
+  }
+});
 
 router.get('/:id', async function (req, res, next) {
   try {
@@ -43,6 +63,7 @@ router.get('/:id', async function (req, res, next) {
     res.status(500).json({ message: error.message })
   }
 });
+
 
 router.get('/findBySport/', async function (req, res, next) {
   var sportPlayer = []

@@ -2,12 +2,13 @@ var express = require('express');
 var router = express.Router();
 var multer = require('../middleware/multer')
 var Player = require('../models/Player')
-var Team = require('../models/Team')
+var Team = require('../models/Team');
+const User = require('../models/User');
 
 /* GET All Teams. */
 router.get('/', async function (req, res, next) {
     try {
-        const teams = await Team.find().populate('players')
+        const teams = await Team.find().populate('players').populate('captain').populate('typeSport')
         res.json(teams)
     } catch (error) {
         res.status(500).json({ message: error.message })
@@ -30,7 +31,7 @@ router.post("/:id", async (req, res, next) => {
                 players: [player],
                 typeSport: req.body.typeSport
             })
-            console.log("team crée" + team)
+            console.log("team crée" + team.id)
             player.team.push(team.id)
             try {
                 const newPlayer = await player.save();
@@ -70,10 +71,26 @@ router.patch("/:id", multer, getTeam, async (req, res) => {
 })
 
 /* Deleting One */
+//il reste des modifications à faire
 router.delete("/:id", getTeam, async (req, res) => {
-    try {
 
+    try {
+        console.log("team entré : " + res.team.id);
         await res.team.remove()
+        const players = await Player.find({ team: res.team.id })
+        players.forEach(player => {
+            console.log("player dans cette team : " + players.team)
+            for (i = 0; i < player.team.length; i++) {
+
+                //console.log("team  chez joueur :" + player.team[i])
+
+                if (player.team[i].id == res.team.id) {
+                    player.team[i].remove()
+                    i--;
+                }
+            }
+        });
+
         res.json({ message: 'Deleted team' })
     } catch (error) {
         res.status(500).json({ message: error.message })
