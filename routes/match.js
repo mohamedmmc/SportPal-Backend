@@ -23,22 +23,31 @@ router.get('/:id', async function (req, res, next) {
     let mymatchs = []
     let listPlayers
     try {
-        const matchs = await Match.find().populate({ path: 'teamA', populate: { path: 'players' } })
+        const matchs = await Match.find()
+            .populate({ path: 'teamA', populate: { path: 'players' } })
             .populate({ path: 'teamB', populate: { path: 'players' } })
             .populate('terrain')
 
 
         listPlayers = await Team.find({ teamA: matchs.teamA }).populate('players')
-        console.log(matchs[0].teamA.players[0]);
 
-        // matchs.forEach((el) => {
-        //     if (el.teamA.players.includes(req.params.id) || el.teamB.players.includes(req.params.id)) {
+        //console.log(listPlayers);
 
-        //         mymatchs.push(el)
-        //     }
-        // })
+        matchs.forEach((el) => {
+            //console.log("hedha player fi match team A : " + el.teamB.players[0].id + " w hedha el id user mte3na : " + req.params.id)
+            for (i = 0; i < el.teamB.players.length; i++) {
+                if (el.teamB.players[i].id == req.params.id) {
+                    mymatchs.push(el)
+                }
+            }
+            for (i = 0; i < el.teamA.players.length; i++) {
+                if (el.teamA.players[i].id == req.params.id) {
+                    mymatchs.push(el)
+                }
+            }
+        })
         // if(matchs.teamA.players)
-        res.status(200).json(matchs)
+        res.status(200).json(mymatchs)
     } catch (error) {
         res.status(500).json({ message: error.message })
     }
@@ -52,7 +61,7 @@ router.post("/indivMatch", async (req, res, next) => {
     if (matchs) {
         for (i = 0; i < matchs.length; i++) {
             if ((matchs[i].teamA.players[0]._id == req.body.teamA && matchs[i].teamB.players[0]._id == req.body.teamB) ||
-               ( matchs[i].teamB.players[0]._id == req.body.teamA && matchs[i].teamB.players[0]._id == req.body.teamA)) {
+                (matchs[i].teamB.players[0]._id == req.body.teamA && matchs[i].teamB.players[0]._id == req.body.teamA)) {
                 return res.status(403).json('duplicate')
             }
         }
@@ -131,6 +140,16 @@ router.delete("/:id", getMatch, async (req, res) => {
     }
 })
 
+
+/* Add to favorite */
+router.delete("/:id", getMatch, async (req, res) => {
+    try {
+        await res.match.remove()
+        res.json({ message: 'Deleted match' })
+    } catch (error) {
+        res.status(500).json({ message: error.message })
+    }
+})
 
 // MiddleWares
 

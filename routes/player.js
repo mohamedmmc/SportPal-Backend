@@ -52,6 +52,7 @@ router.get('/:id', async function (req, res, next) {
     }
     else {
       for (i = 0; i < player.length; i++) {
+        console.log(player[i].friends);
         if (player[i].id != req.params.id) {
           players.push(player[i])
         }
