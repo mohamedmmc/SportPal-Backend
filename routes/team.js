@@ -4,7 +4,7 @@ var multer = require('../middleware/multer')
 var Player = require('../models/Player')
 var Team = require('../models/Team');
 const User = require('../models/User');
-
+var cloudinary = require('../middleware/cloudinary')
 /* GET All Teams. */
 router.get('/', async function (req, res, next) {
     try {
@@ -16,7 +16,7 @@ router.get('/', async function (req, res, next) {
 });
 
 /* Creating One Team */
-router.post("/:id", async (req, res, next) => {
+router.post("/:id", multer, async (req, res, next) => {
     var player
     try {
         player = await Player.findById(req.params.id).populate('team')
@@ -26,11 +26,19 @@ router.post("/:id", async (req, res, next) => {
                     return res.json({ message: "already in team" })
                 }
             }
+
+
             const team = new Team({
                 captain: req.params.id,
                 players: [player],
-                typeSport: req.body.typeSport
+                typeSport: req.body.typeSport,
+                ...req.body,
             })
+
+            if (req.file != null) {
+                const photoCloudinary = await cloudinary.uploader.upload(req.file.path)
+                team.picture = photoCloudinary.url
+            }
             console.log("team crée" + team.id)
             player.team.push(team.id)
             try {

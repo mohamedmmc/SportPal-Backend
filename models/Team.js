@@ -14,6 +14,16 @@ const teamSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'sport'
     },
+    picture: {
+        type: String
+    },
+    description: {
+        type: String
+    },
+    name: {
+        type: String
+    },
+
 })
 
 module.exports = mongoose.model('team', teamSchema)
