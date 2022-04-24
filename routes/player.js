@@ -21,6 +21,7 @@ router.get('/', async function (req, res, next) {
     res.status(500).json({ message: error.message })
   }
 });
+
 router.delete('/friends/:id', async function (req, res, next) {
   try {
     let players = []
@@ -51,10 +52,19 @@ router.get('/:id', async function (req, res, next) {
       res.status(404).json({ message: "no users" })
     }
     else {
+      console.log(player);
       for (i = 0; i < player.length; i++) {
-        console.log(player[i].friends);
         if (player[i].id != req.params.id) {
-          players.push(player[i])
+          if (player[i].friends.length == 0) {
+            players.push(player[i])
+          }
+          else {
+            for (j = 0; j < player[i].friends.length; j++) {
+              if (player[i].friends[j].id == req.params.id)
+                player.splice(i, 1);
+              break;
+            }
+          }
         }
       }
     }
@@ -64,7 +74,6 @@ router.get('/:id', async function (req, res, next) {
     res.status(500).json({ message: error.message })
   }
 });
-
 
 router.get('/findBySport/', async function (req, res, next) {
   var sportPlayer = []
@@ -84,6 +93,7 @@ router.get('/findBySport/', async function (req, res, next) {
     res.status(500).json({ message: error.message })
   }
 });
+
 class sports {
   constructor(sport, strongLeg, strongHand, favCourt, knowledge, idol) {
     this.sport = sport;
@@ -94,7 +104,6 @@ class sports {
     this.idol = idol;
   }
 }
-
 
 //add player
 router.post('/', multer, async (req, res) => {
