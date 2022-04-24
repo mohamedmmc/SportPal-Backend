@@ -37,6 +37,7 @@ router.get('/:id', async function (req, res, next) {
 /*add favorite*/
 router.post('/:id', async function (req, res, next) {
 
+  let fav
 
   try {
     let favorites = await Favorite.findOne({ player: req.params.id })
@@ -48,10 +49,13 @@ router.post('/:id', async function (req, res, next) {
         tournament: req.body.tournament
       })
     } else {
-      favorites.match.push(req.body.match)
-      favorites.tournament.push(req.body.tournament)
+      if (req.body.match) {
+        favorites.match.push(req.body.match)
+
+      } if (req.body.tournament) {
+        favorites.tournament.push(req.body.tournament)
+      }
     }
-    console.log(favorites);
 
     try {
       const newFav = await favorites.save();

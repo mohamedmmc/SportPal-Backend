@@ -78,7 +78,8 @@ router.post("/match-request", getNotificationMatch, async (req, res, next) => {
         from: req.body.from,
         to: req.body.to,
         description: "Sent you a match request",
-        type: "Match request"
+        type: "Match request",
+        terrain: req.body.terrain
     })
 
     try {

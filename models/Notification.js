@@ -23,6 +23,10 @@ const notificationSchema = new mongoose.Schema({
     accept: {
         type: Boolean,
         default: false
+    },
+    terrain: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'terrain'
     }
 })
 
