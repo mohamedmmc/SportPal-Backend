@@ -27,21 +27,13 @@ router.get('/:id', async function (req, res, next) {
     let players = []
     const player = await Player.find({ type: "player" })
     let notifs = []
-    const notifications = await Notification.find()
     if (player == null) {
       res.status(404).json({ message: "no users" })
     }
     else {
       for (i = 0; i < player.length; i++) {
         if (player[i].id != req.params.id) {
-          for (j = 0; j < notifications.length; j++) {
-
-            if ((notifications[j].type == "Friend request" && (player[i].id == notifications[j].from || player[i].id == notifications[j].to[0])))
-              players.push(player[i])
-            console.log(notifications[j]);
-
-          }
-
+          players.push(player[i])
         }
       }
     }

@@ -47,6 +47,10 @@ const userSchema = new mongoose.Schema({
     weight: {
         type: Number
     },
+    friends: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'user'
+    }]
 
 }, baseOptions)
 

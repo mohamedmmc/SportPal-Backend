@@ -2,7 +2,8 @@ var express = require('express');
 var router = express.Router();
 var multer = require('../middleware/multer')
 var Team = require('../models/Team')
-var Notification = require('../models/Notification')
+var Notification = require('../models/Notification');
+const User = require('../models/User');
 
 /* GET all notification. */
 router.get('/', async function (req, res, next) {
@@ -23,11 +24,10 @@ router.get('/:id', async function (req, res, next) {
     try {
         var notification = []
         const notifications = await Notification.find().populate('to').populate('from');
-        if (notifications != null) {
+        if (notifications) {
             for (i = 0; i < notifications.length; i++) {
 
                 if (notifications[i].from._id == req.params.id) {
-
                     notification.push(notifications[i])
                 }
                 for (j = 0; j < notifications[i].to.length; j++) {
@@ -48,7 +48,7 @@ router.get('/:id', async function (req, res, next) {
     }
 });
 
-/* Creating One notificaiton */
+/* Creating friend notificaiton */
 router.post("/friend-request", getNotificationFriend, async (req, res, next) => {
 
     var to = []
@@ -69,7 +69,7 @@ router.post("/friend-request", getNotificationFriend, async (req, res, next) => 
 })
 
 
-/* Creating One notificaiton */
+/* Creating match notificaiton */
 router.post("/match-request", getNotificationMatch, async (req, res, next) => {
 
     var to = []
@@ -92,7 +92,7 @@ router.post("/match-request", getNotificationMatch, async (req, res, next) => {
 
 
 /* Confirm Notification */
-router.post("/confirm", async (req, res, next) => {
+router.post("/confirm", getUsers, async (req, res, next) => {
 
     try {
         const notification = await Notification.find({ from: req.body.from })
@@ -100,7 +100,13 @@ router.post("/confirm", async (req, res, next) => {
             for (j = 0; j < notification[i].to.length; j++) {
                 if (notification[i].to[j] == req.body.to) {
                     notification[i].accept = true;
-                    const done = await notification[i].save();
+                    if (notification[i].type == "Friend request") {
+                        res.user1.friends.push(req.body.to)
+                        res.user2.friends.push(req.body.from)
+                    }
+                    const done = await res.user1.save();
+                    const aaa = await res.user2.save();
+                    const dbone = await notification.save();
                     return res.status(201).json({ done });
                 }
             }
@@ -197,6 +203,27 @@ async function getNotificationFriend(req, res, next) {
     res.notification = notification
     next()
 }
+
+async function getUsers(req, res, next) {
+    let user1
+    let user2
+
+    try {
+        user1 = await User.findById(req.body.from)
+        user2 = await User.findById(req.body.to)
+        if (user1 == null && user2 == null) {
+            return res.status(404).json({ message: 'Cannot find users' })
+        }
+    } catch (error) {
+        return res.status(500).json({ message: error.message })
+    }
+
+    console.log(user1 + user2);
+    res.user1 = user1
+    res.user2 = user2
+    next()
+}
+
 
 async function getNotificationMatch(req, res, next) {
     let notification
