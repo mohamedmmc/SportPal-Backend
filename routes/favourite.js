@@ -31,6 +31,7 @@ router.get('/:id', async function (req, res, next) {
 
       .populate('adversaire')
 
+
     // .populate({ path: 'match', populate: { path: 'teamA' } })
     // .populate({ path: 'match', populate: { path: 'teamB' } })
     //.populate({ path: 'match', path: 'teamA', populate: { path: 'players' } })

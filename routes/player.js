@@ -52,18 +52,24 @@ router.get('/:id', async function (req, res, next) {
       res.status(404).json({ message: "no users" })
     }
     else {
-      console.log(player);
+
       for (i = 0; i < player.length; i++) {
         if (player[i].id != req.params.id) {
           if (player[i].friends.length == 0) {
             players.push(player[i])
           }
           else {
-            for (j = 0; j < player[i].friends.length; j++) {
-              if (player[i].friends[j].id == req.params.id)
-                player.splice(i, 1);
-              break;
+            if (!player[i].friends.includes(req.params.id)) {
+              players.push(player[i])
             }
+            // for (j = 0; j < player[i].friends.length; j++) {
+            //   if (player[i].friends[j].id != req.params.id) {
+            //     players.push(player[i])
+            //     break;
+            //   }
+
+            // }
+            // //players.push(player[i])
           }
         }
       }
