@@ -142,10 +142,10 @@ router.delete("/:id", getMatch, async (req, res) => {
 
 
 /* Add to favorite */
-router.delete("/:id", getMatch, async (req, res) => {
+router.patch("/mymatch/:id", getMatch, async (req, res) => {
     try {
-        await res.match.remove()
-        res.json({ message: 'Deleted match' })
+
+        res.json(res.match)
     } catch (error) {
         res.status(500).json({ message: error.message })
     }

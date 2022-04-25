@@ -151,7 +151,6 @@ router.post("/confirm", getUsers, async (req, res, next) => {
 /* Deleting One */
 router.delete("/deleteMYnotif", async (req, res) => {
 
-
     try {
         const notification = await Notification.find({ from: req.body.from })
         for (i = 0; i < notification.length; i++) {
@@ -163,13 +162,10 @@ router.delete("/deleteMYnotif", async (req, res) => {
             }
         }
         return res.status(400).json({ message: "problem" })
-
-
     } catch (error) {
         res.status(500).json({ message: error.message })
     }
 })
-
 
 router.delete("/:id", getMyNotification, async (req, res) => {
     try {

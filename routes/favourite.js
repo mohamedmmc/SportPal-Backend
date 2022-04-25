@@ -11,7 +11,11 @@ const Favorite = require('../models/Favorite');
 /* GET All favs. */
 router.get('/', async function (req, res, next) {
   try {
-    const matchs = await Favorite.find().populate('player').populate('match').populate('tournament')
+    const matchs = await Favorite.find()
+      .populate('match')
+      .populate('tournament')
+      .populate('player')
+      .populate('adversaire')
 
     res.json(matchs)
   } catch (error) {
@@ -21,13 +25,24 @@ router.get('/', async function (req, res, next) {
 
 /* GET my fav. */
 router.get('/:id', async function (req, res, next) {
+  let matches = []
   try {
-    let favorites = await Favorite.findOne({ player: req.params.id })
+    let favorites = await Favorite.find({ player: req.params.id })
+
+      .populate('adversaire')
+
+    // .populate({ path: 'match', populate: { path: 'teamA' } })
+    // .populate({ path: 'match', populate: { path: 'teamB' } })
+    //.populate({ path: 'match', path: 'teamA', populate: { path: 'players' } })
 
     if (favorites == null) {
       return res.status(404).json({ message: "not found" })
     } else {
-      return res.status(200).json(favorites)
+      for (i = 0; i < favorites.length; i++) {
+        //console.log(favorites[i].match);
+        matches.push(favorites[i].adversaire)
+      }
+      return res.status(200).json(matches[0])
     }
   } catch (error) {
     return res.status(500).json({ message: error.message })
@@ -41,19 +56,27 @@ router.post('/:id', async function (req, res, next) {
 
   try {
     let favorites = await Favorite.findOne({ player: req.params.id })
-    console.log(favorites);
+    //console.log(favorites);
     if (favorites == null) {
       favorites = new Favorite({
         player: req.params.id,
         match: req.body.match,
-        tournament: req.body.tournament
+        tournament: req.body.tournament,
+        adversaire: req.body.adversaire
       })
     } else {
+      //console.log(!favorites.match.includes(req.body.match));
       if (req.body.match) {
-        favorites.match.push(req.body.match)
+        if (!favorites.match.includes(req.body.match)) {
+          favorites.match.push(req.body.match)
+        }
 
       } if (req.body.tournament) {
-        favorites.tournament.push(req.body.tournament)
+        if (!favorites.tournament.includes(req.body.tournament)) {
+          favorites.tournament.push(req.body.tournament)
+        }
+      } if (req.body.adversaire && !favorites.adversaire.includes(req.body.adversaire)) {
+        favorites.adversaire.push(req.body.adversaire)
       }
     }
 
