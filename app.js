@@ -22,6 +22,7 @@ var complexeRouter = require('./routes/complexe');
 var complexeOwnerRouter = require('./routes/complexeOwner');
 var TerrainRouter = require('./routes/terrain');
 var FavoriteRouter = require('./routes/favourite');
+var viewRouter = require('./routes/view.js');
 var app = express();
 
 //connexion DB
@@ -38,10 +39,46 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.static(path.join(__dirname, 'upload')));
+app.set("view engine", "jade")
+
+
+const swaggerJSDoc = require('swagger-jsdoc');
+const swaggerUi = require('swagger-ui-express');
+const bodyParser = require("body-parser");
+/////////////////swagger
+
+// swagger definition
+var swaggerDefinition = {
+    info: {
+        title: 'SportPal App',
+        version: 'V1.0',
+        description: 'With Sportpal, find your pal',
+    },
+    host: 'sportpal-flutter.herokuapp.com',
+    basePath: '/',
+};
+// options for the swagger docs
+var options = {
+    // import swaggerDefinitions
+    swaggerDefinition: swaggerDefinition,
+    // path to the API docs
+    apis: ['./swag.yml'],
+};
+
+// initialize swagger-jsdoc
+var swaggerSpec = swaggerJSDoc(options);
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+
+app.get('/swagger.json', function (req, res) {
+    res.setHeader('Content-Type', 'application/json');
+    res.send(swaggerSpec);
+});
+
 
 //Routes
 
 //app.use('/', indexRouter);
+app.use('/', viewRouter)
 app.use('/complexeowner', complexeOwnerRouter);
 app.use('/user', usersRouter);
 app.use('/player', playerRouter);

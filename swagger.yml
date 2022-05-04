@@ -1,0 +1,90 @@
+ags:
+- name: User
+  description: Access to Users of Lost And Found
+
+
+
+paths:
+#Admin
+#begin signup
+  /user :
+    post:
+      tags:
+      - User
+      summary: Add a new users 
+      operationId: addusers
+      consumes:
+      - multipart/form-data
+      produces:
+      - application/json
+      parameters:
+      - in: formData
+        name: email     
+        required: true
+        type: string
+      - in: formData
+        name: password
+        required: true
+        type: string
+      - name: prenom
+        in: formData
+        required: true
+        type: string 
+      - name: nom
+        in: formData
+        required: true
+        type: string
+      - name: numt
+        in: formData
+        required: true
+        type: integer
+      - name: isVerified
+        in: formData
+        required: true
+        type: boolean 
+      - name: photoProfil
+        in: formData
+        description: file to upload
+        required: false
+        type: file
+      responses:
+        200:
+          description: user added with
+        405:
+          description: Invalid input
+    get:
+      tags:
+      - User
+      summary: Finds all User 
+      description: Finds all User
+      operationId: findUser
+      produces:
+      - application/json
+      responses:
+        200:
+          description: successful operation
+        400:
+          description: Invalid status value
+
+definitions:
+
+#User
+  User:
+    type: object
+    properties:
+      email:
+        type: string
+      nom:
+        type: string
+      prenom:
+        type: string
+      password:
+        type: string
+      photoProfil:
+        type: string
+      isVerified:
+        type: boolean
+        description: User Status
+    xml:
+      name: User
+#end News
