@@ -14,6 +14,7 @@ var multerF = require('../middleware/multer-file')
 
 router.get('/', async function (req, res, next) {
   try {
+
     const arbitre = await User.find({ type: "arbitre" })
     res.json(arbitre)
   } catch (error) {
