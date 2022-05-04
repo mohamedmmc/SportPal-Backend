@@ -25,7 +25,7 @@ router.get('/', async function (req, res, next) {
 
 /* GET my fav. */
 router.get('/:id', async function (req, res, next) {
-  let matches = []
+  let favs = []
   try {
     let favorites = await Favorite.find({ player: req.params.id })
 
@@ -41,9 +41,9 @@ router.get('/:id', async function (req, res, next) {
     } else {
       for (i = 0; i < favorites.length; i++) {
         //console.log(favorites[i].match);
-        matches.push(favorites[i].adversaire)
+        favs.push(favorites[i].adversaire)
       }
-      return res.status(200).json(matches[0])
+      return res.status(200).json(favs[0])
     }
   } catch (error) {
     return res.status(500).json({ message: error.message })
@@ -70,6 +70,8 @@ router.post('/:id', async function (req, res, next) {
       if (req.body.match) {
         if (!favorites.match.includes(req.body.match)) {
           favorites.match.push(req.body.match)
+        } else {
+          return res.status(403).json('duplicate');
         }
 
       } if (req.body.tournament) {
@@ -95,10 +97,12 @@ router.post('/:id', async function (req, res, next) {
 
 
 /* Deleting One */
-router.delete("/:id", getFav, async (req, res) => {
+router.delete("/:id", async (req, res) => {
+  const fav = await Favorite.findOne({ adversaire: req.params.id })
+  console.log(fav);
   try {
-    await res.favorites.remove()
-    res.json({ message: 'Deleted match' })
+    await fav.remove()
+    res.status(200).json({ message: 'Deleted match' })
   } catch (error) {
     res.status(500).json({ message: error.message })
   }

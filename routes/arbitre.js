@@ -3,7 +3,7 @@ var router = express.Router();
 var multer = require('../middleware/multer')
 var cloudinary = require('../middleware/cloudinary')
 var User = require('../models/User')
-var Arbitre = require('../models/Arbitre')
+var Arbitre = require('../models/arbitre')
 var Token = require('../models/Token')
 var nodemailer = require("nodemailer");
 var jwt = require('jsonwebtoken')
@@ -11,6 +11,7 @@ var Bcrypt = require('bcrypt')
 var crypto = require('crypto')
 var multerF = require('../middleware/multer-file')
 /* GET arbitre listing. */
+
 router.get('/', async function (req, res, next) {
   try {
     const arbitre = await User.find({ type: "arbitre" })
@@ -25,8 +26,8 @@ router.post('/', multer, async (req, res) => {
   //await User.init();
   //const photoCloudinary = await cloudinary.uploader.upload(req.file.path)
 
-  
-  
+
+
 
   const arbitre = new Arbitre({
     ...req.body,
