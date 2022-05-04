@@ -17,6 +17,7 @@ var teamRouter = require('./routes/team');
 var matchRouter = require('./routes/match');
 var tournamentRouter = require('./routes/tournament');
 var sportRouter = require('./routes/sport');
+
 var notificationRouter = require('./routes/notification');
 var complexeRouter = require('./routes/complexe');
 var complexeOwnerRouter = require('./routes/complexeOwner');
