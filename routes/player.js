@@ -22,6 +22,15 @@ router.get('/', async function (req, res, next) {
   }
 });
 
+router.get('/detailPlayer/:id', async function (req, res, next) {
+  try {
+    const player = await Player.findById(req.params.id)
+    res.status(200).json({ player })
+  } catch (error) {
+    res.status(500).json({ message: error.message })
+  }
+});
+
 router.delete('/friends/:id', async function (req, res, next) {
   try {
     let players = []
@@ -59,16 +68,17 @@ router.get('/:id', async function (req, res, next) {
             players.push(player[i])
           }
           else {
+            //players.push(player[i])
             if (!player[i].friends.includes(req.params.id)) {
               players.push(player[i])
             }
-            // for (j = 0; j < player[i].friends.length; j++) {
-            //   if (player[i].friends[j].id != req.params.id) {
-            //     players.push(player[i])
-            //     break;
-            //   }
+            for (j = 0; j < player[i].friends.length; j++) {
+              if (player[i].friends[j].id != req.params.id) {
+                players.push(player[i])
+                break;
+              }
 
-            // }
+            }
             // //players.push(player[i])
           }
         }
@@ -101,13 +111,16 @@ router.get('/findBySport/', async function (req, res, next) {
 });
 
 class sports {
-  constructor(sport, strongLeg, strongHand, favCourt, knowledge, idol) {
+  constructor(sport, strongLeg, strongHand, favCourt, knowledge, idol, role, position, type) {
     this.sport = sport;
     this.strongLeg = strongLeg;
     this.strongHand = strongHand;
     this.favCourt = favCourt;
     this.knowledge = knowledge;
     this.idol = idol;
+    this.role = role;
+    this.position = position;
+    this.type = type;
   }
 }
 
@@ -387,49 +400,68 @@ router.post('/', multer, async (req, res) => {
 /* Updating One */
 router.patch("/:id/", multer, getPlayer, async (req, res) => {
 
-  const sportFront = new sports(req.body.sports, req.body.strongLeg, req.body.strongHand, req.body.favCourt, req.body.knowledge, req.body.idol)
 
-  console.log(sportFront);
+  const sportFront = new sports(
+    req.body.sports,
+    req.body.strongLeg,
+    req.body.strongHand,
+    req.body.favCourt,
+    req.body.knowledge,
+    req.body.idol,
+    req.body.role,
+    req.body.position,
+
+  )
+
+  //console.log(sportFront);
 
   if (req.body.team != null) {
     res.player.team = req.body.team
   }
   ///*****/
-
   if (req.body.sports != null) {
-    if (res.player.sports.length == 0) {
-      res.player.sports.push(sportFront)
-    } else {
-      for (i = 0; i < res.player.sports.length; i++) {
-        if (req.body.sports == res.player.sports[i].sport) {
-          res.player.sports[i] = sportFront
-          break
-        } if (res.player.sports.length - 1 == i) {
-          res.player.sports.push(sportFront)
+    try {
+
+      console.log("nombre de sport :" + res.player);
+      if (res.player.sports.length == 0) {
+        console.log("on est ici");
+        res.player.sports.push(sportFront)
+      } else {
+        console.log("on est la");
+        for (i = 0; i < res.player.sports.length; i++) {
+          if (req.body.sports == res.player.sports[i].sport) {
+            res.player.sports[i] = sportFront
+            break
+          } if (res.player.sports.length - 1 == i) {
+            res.player.sports.push(sportFront)
+          }
         }
       }
+
+    } catch (error) {
+      console.log("hedhi el erreur :", error.message);
     }
   }
+  if (req.body.fullName != null) {
+    res.player.fullName = req.body.fullName
+  }
 
+  if (req.body.email != null) {
+    res.player.email = req.body.email
+  }
 
+  if (req.body.birthDate != null) {
+    res.player.birthDate = req.body.birthDate
+  }
+  if (req.body.telNum != null) {
+    res.player.telNum = req.body.telNum
+  }
   if (req.body.rating != null) {
     res.player.rating = req.body.rating
   }
   if (req.body.description != null) {
     res.player.description = req.body.description
   }
-
-
-  // if (req.body.strongHand != null && res.sport._id == '622f5416841f4493413f276f') {
-  //   res.player.sports[0].strongHand = req.body.strongHand
-  //   console.log(await Sport.findById(res.sport._id))
-  //   console.log("tennis")
-  // }
-
-
-  // if (res.sport._id == '622f543ef89ec3e99faf1042') {
-  //   console.log("football")
-  // }
 
 
   if (req.file != null) {
@@ -443,6 +475,7 @@ router.patch("/:id/", multer, getPlayer, async (req, res) => {
 
     res.status(200).json({ user: updatedTeam })
   } catch (error) {
+    console.log(error);
     res.status(400).json({ message: error.message })
 
   }
@@ -452,7 +485,7 @@ router.patch("/:id/", multer, getPlayer, async (req, res) => {
 async function getPlayer(req, res, next) {
   let player
   try {
-    player = await User.findById(req.params.id)
+    player = await Player.findById(req.params.id)
     if (player == null) {
       return res.status(404).json({ message: 'Cannot find player' })
     }
