@@ -6,6 +6,11 @@ var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 const mongoose = require("mongoose")
+var cors = require("cors");
+
+
+
+
 
 //var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
@@ -39,6 +44,11 @@ app.use(express.static(path.join(__dirname, 'upload')));
 //Routes
 
 //app.use('/', indexRouter);
+<<<<<<< Updated upstream
+=======
+app.use('/complexeowner', complexeOwnerRouter);
+app.use(cors());
+>>>>>>> Stashed changes
 app.use('/user', usersRouter);
 app.use('/player', playerRouter);
 app.use('/complexeOwner', ComplexeOwnerRouter);
@@ -49,5 +59,35 @@ app.use('/team', teamRouter);
 app.use('/match', matchRouter);
 app.use('/tournament', tournamentRouter);
 app.use('/sport', sportRouter);
+<<<<<<< Updated upstream
+=======
+app.use('/notification', notificationRouter);
+app.use('/complexe', complexeRouter); FavoriteRouter
+app.use('/terrain', TerrainRouter);
+app.use('/favorites', FavoriteRouter);
+
+
+app.use(function (req, res, next) {
+    res.header("Access-Control-Allow-Origin", "*"); // update to match the domain you will make the request from
+    res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
+    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept,token");
+    res.header(
+        'Access-Control-Expose-Headers',
+        'token'
+    );
+    next();
+});
+
+
+
+app.get('/', function (req, res, next) {
+    // Handle the get for this route
+});
+
+app.post('/', function (req, res, next) {
+    // Handle the post for this route
+});
+
+>>>>>>> Stashed changes
 
 module.exports = app;

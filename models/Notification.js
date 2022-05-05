@@ -12,8 +12,18 @@ const notificationSchema = new mongoose.Schema({
     date: {
         type: Date
     },
+<<<<<<< Updated upstream
     sent: {
         type: Boolean
+=======
+    accept: {
+        type: Boolean,
+        default: false
+    },
+    terrain: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'terrain'
+>>>>>>> Stashed changes
     }
 })
 
