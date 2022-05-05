@@ -22,7 +22,11 @@ var newsRouter = require('./routes/news');
 var teamRouter = require('./routes/team');
 var matchRouter = require('./routes/match');
 var tournamentRouter = require('./routes/tournament');
+var notificationRouter = require('./routes/notification');
 var sportRouter = require('./routes/sport');
+var complexeRouter = require('./routes/sport');
+var TerrainRouter = require('./routes/sport');
+var FavoriteRouter = require('./routes/favourite');
 
 var app = express();
 
@@ -44,11 +48,7 @@ app.use(express.static(path.join(__dirname, 'upload')));
 //Routes
 
 //app.use('/', indexRouter);
-<<<<<<< Updated upstream
-=======
-app.use('/complexeowner', complexeOwnerRouter);
 app.use(cors());
->>>>>>> Stashed changes
 app.use('/user', usersRouter);
 app.use('/player', playerRouter);
 app.use('/complexeOwner', ComplexeOwnerRouter);
@@ -59,10 +59,8 @@ app.use('/team', teamRouter);
 app.use('/match', matchRouter);
 app.use('/tournament', tournamentRouter);
 app.use('/sport', sportRouter);
-<<<<<<< Updated upstream
-=======
 app.use('/notification', notificationRouter);
-app.use('/complexe', complexeRouter); FavoriteRouter
+app.use('/complexe', complexeRouter);
 app.use('/terrain', TerrainRouter);
 app.use('/favorites', FavoriteRouter);
 
@@ -88,6 +86,5 @@ app.post('/', function (req, res, next) {
     // Handle the post for this route
 });
 
->>>>>>> Stashed changes
 
 module.exports = app;

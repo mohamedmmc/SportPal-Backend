@@ -406,27 +406,10 @@ router.post('/', multer, async (req, res) => {
   })
   if (req.file != null) {
     const photoCloudinary = await cloudinary.uploader.upload(req.file.path)
-<<<<<<< Updated upstream
-    complexeOwner.profilePic = photoCloudinary.url
-
-    console.log(photoCloudinary)
-  }
-
-  try {
-    const newComplexe = await complexeOwner.save()
-    return res.status(201).json(newComplexe)
-  } catch (error) {
-    return res.status(400).json({ message: error.message })
-  }
-
-
-
-=======
     complexeOwner.picture = photoCloudinary.url
   }
   const newComplexe = await complexeOwner.save()
   return res.status(201).json(newComplexe)
->>>>>>> Stashed changes
 
 
   //   try {

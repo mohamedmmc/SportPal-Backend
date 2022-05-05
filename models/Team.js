@@ -1,6 +1,5 @@
 const mongoose = require('mongoose')
 
-//changed on 12:53 4 mars
 
 const teamSchema = new mongoose.Schema({
     players: [{
@@ -12,8 +11,19 @@ const teamSchema = new mongoose.Schema({
         ref: 'player'
     },
     typeSport: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'sport'
+    },
+    picture: {
         type: String
     },
+    description: {
+        type: String
+    },
+    name: {
+        type: String
+    },
+
 })
 
 module.exports = mongoose.model('team', teamSchema)

@@ -2,9 +2,6 @@ var express = require('express');
 var router = express.Router();
 var multer = require('../middleware/multer')
 var Player = require('../models/Player')
-<<<<<<< Updated upstream
-var Team = require('../models/Team')
-=======
 var Team = require('../models/Team');
 const User = require('../models/User');
 var cloudinary = require('../middleware/cloudinary')
@@ -22,15 +19,10 @@ router.get('/myteam/:idTeam', async function (req, res, next) {
     }
 });
 
->>>>>>> Stashed changes
 
 /* GET All Teams. */
 router.get('/', async function (req, res, next) {
     try {
-<<<<<<< Updated upstream
-        const teams = await Team.find()
-        res.json(teams)
-=======
 
 
         const team = await Team.find().populate('players').populate('captain')
@@ -50,7 +42,6 @@ router.get('/:idplayer', async function (req, res, next) {
 
         res.json(team)
 
->>>>>>> Stashed changes
     } catch (error) {
         res.status(500).json({ message: error.message })
     }
@@ -58,23 +49,6 @@ router.get('/:idplayer', async function (req, res, next) {
 
 
 /* Creating One Team */
-<<<<<<< Updated upstream
-router.post("/", async (req, res, next) => {
-
-    const player = new Player({
-        ...req.body
-    })
-    const team = new Team({
-        ...req.body,
-        players: player
-    })
-    console.log("Posted Successfuly" + team)
-    try {
-        const newTeam = await team.save();
-        res.status(201).json({ newTeam });
-    } catch (error) {
-        res.status(400).json({ message: error.message })
-=======
 router.post("/:id", multer, async (req, res, next) => {
 
     try {
@@ -114,7 +88,6 @@ router.post("/:id", multer, async (req, res, next) => {
     }
     catch (error) {
         return res.json({ message: error.message })
->>>>>>> Stashed changes
     }
 })
 

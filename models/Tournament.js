@@ -19,13 +19,7 @@ const tournamentSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'user',
     },
-<<<<<<< Updated upstream
-    participants: [{
-        _id: false, team: { type: mongoose.Schema.Types.ObjectId, ref: 'team' }, points: Number, isEliminated: Boolean,
-    }],
-=======
     participants: [],
->>>>>>> Stashed changes
     matchs: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'match'
@@ -46,9 +40,6 @@ const tournamentSchema = new mongoose.Schema({
     to: {
         type: Date
     },
-<<<<<<< Updated upstream
-
-=======
     place: {
         type: String,
         default: null
@@ -59,7 +50,6 @@ const tournamentSchema = new mongoose.Schema({
     creditCard: {
         type: String
     }
->>>>>>> Stashed changes
 
 })
 

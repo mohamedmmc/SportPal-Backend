@@ -6,38 +6,156 @@ var User = require('../models/User')
 var Player = require('../models/Player')
 var nodemailer = require("nodemailer");
 var Bcrypt = require('bcrypt')
+var jwt = require('jsonwebtoken');
+const Sport = require('../models/Sport');
+var Notification = require('../models/Notification');
 
 /* GET users listing. */
 
 
 router.get('/', async function (req, res, next) {
   try {
-    const player = await Player.find({type:"player"})
-    res.json(player)
+    const player = await Player.find({ type: "player" })
+    res.status(200).json({ player })
   } catch (error) {
     res.status(500).json({ message: error.message })
   }
 });
 
+router.get('/detailPlayer/:id', async function (req, res, next) {
+  try {
+    const player = await Player.findById(req.params.id)
+    res.status(200).json({ player })
+  } catch (error) {
+    res.status(500).json({ message: error.message })
+  }
+});
+
+router.delete('/friends/:id', async function (req, res, next) {
+  try {
+    let players = []
+    const player = await User.findById(req.params.id).populate('friends')
+
+    if (player == null) {
+      res.status(404).json({ message: "no users" })
+    }
+    else {
+      for (i = 0; i < player.friends.length; i++) {
+        players.push(player.friends[i])
+
+      }
+    }
+    res.status(200).json({ players })
+  }
+  catch (error) {
+    res.status(500).json({ message: error.message })
+  }
+});
+
+router.get('/:id', async function (req, res, next) {
+  try {
+    let players = []
+    const player = await Player.find({ type: "player" })
+    let notifs = []
+    if (player == null) {
+      res.status(404).json({ message: "no users" })
+    }
+    else {
+
+      for (i = 0; i < player.length; i++) {
+        if (player[i].id != req.params.id) {
+          if (player[i].friends.length == 0) {
+            players.push(player[i])
+          }
+          else {
+            //players.push(player[i])
+            if (!player[i].friends.includes(req.params.id)) {
+              players.push(player[i])
+            }
+            for (j = 0; j < player[i].friends.length; j++) {
+              if (player[i].friends[j].id != req.params.id) {
+                players.push(player[i])
+                break;
+              }
+
+            }
+            // //players.push(player[i])
+          }
+        }
+      }
+    }
+    res.status(200).json({ players })
+  }
+  catch (error) {
+    res.status(500).json({ message: error.message })
+  }
+});
+
+router.get('/findBySport/', async function (req, res, next) {
+  var sportPlayer = []
+  try {
+    const player = await User.find({ type: "player" }).populate('')
+    console.log(player.sports)
+    for (i = 0; i < player.sports.length; i++) {
+
+    }
+    player.sports.forEach(element => {
+      if (element.sport == req.body.sports) {
+        sportPlayer.push(player)
+      }
+    });
+    res.json(sportPlayer)
+  } catch (error) {
+    res.status(500).json({ message: error.message })
+  }
+});
+
+class sports {
+  constructor(sport, strongLeg, strongHand, favCourt, knowledge, idol, role, position, type) {
+    this.sport = sport;
+    this.strongLeg = strongLeg;
+    this.strongHand = strongHand;
+    this.favCourt = favCourt;
+    this.knowledge = knowledge;
+    this.idol = idol;
+    this.role = role;
+    this.position = position;
+    this.type = type;
+  }
+}
+
 //add player
 router.post('/', multer, async (req, res) => {
 
   await User.init();
-  const hashedPass = await Bcrypt.hash(req.body.password, 10)
+
   const player = new Player({
     ...req.body,
-    password: hashedPass
+
   })
+  if (req.body.password != null) {
+    try {
+      const hashedPass = await Bcrypt.hash(req.body.password, 10)
+      player.password = hashedPass
+    } catch (error) {
+      return res.json({ erreur: error.message })
+    }
+  }
   if (req.file != null) {
     const photoCloudinary = await cloudinary.uploader.upload(req.file.path)
-    player.picture = photoCloudinary.url
+    player.profilePic = photoCloudinary.url
+  } else {
+    player.profilePic = "https://res.cloudinary.com/dy05x9auh/image/upload/v1648226974/athlete_lxnnu3.png"
   }
-
+  const token = jwt.sign({ username: player.email }, "SECRET")
   try {
     const newPlayer = await player.save()
-  return res.status(201).json(newPlayer)
+    return res.status(201).json({
+      user: newPlayer,
+      token: token
+    })
   } catch (error) {
-    return res.status(401).json(error.message)
+    return res.status(401).json({ message: error.message })
   }
 
   //   try {
@@ -279,6 +397,126 @@ router.post('/', multer, async (req, res) => {
   // }
 })
 
+/* Updating One */
+router.patch("/:id/", multer, getPlayer, async (req, res) => {
 
 
+  const sportFront = new sports(
+    req.body.sports,
+    req.body.strongLeg,
+    req.body.strongHand,
+    req.body.favCourt,
+    req.body.knowledge,
+    req.body.idol,
+    req.body.role,
+    req.body.position,
+
+  )
+
+  //console.log(sportFront);
+
+  if (req.body.team != null) {
+    res.player.team = req.body.team
+  }
+  ///*****/
+  if (req.body.sports != null) {
+    try {
+
+      console.log("nombre de sport :" + res.player);
+      if (res.player.sports.length == 0) {
+        console.log("on est ici");
+        res.player.sports.push(sportFront)
+      } else {
+        console.log("on est la");
+        for (i = 0; i < res.player.sports.length; i++) {
+          if (req.body.sports == res.player.sports[i].sport) {
+            res.player.sports[i] = sportFront
+            break
+          } if (res.player.sports.length - 1 == i) {
+            res.player.sports.push(sportFront)
+          }
+        }
+      }
+
+    } catch (error) {
+      console.log("hedhi el erreur :", error.message);
+    }
+  }
+  if (req.body.fullName != null) {
+    res.player.fullName = req.body.fullName
+  }
+
+  if (req.body.email != null) {
+    res.player.email = req.body.email
+  }
+
+  if (req.body.birthDate != null) {
+    res.player.birthDate = req.body.birthDate
+  }
+  if (req.body.telNum != null) {
+    res.player.telNum = req.body.telNum
+  }
+  if (req.body.rating != null) {
+    res.player.rating = req.body.rating
+  }
+  if (req.body.description != null) {
+    res.player.description = req.body.description
+  }
+
+
+  if (req.file != null) {
+    const photoCloudinary = await cloudinary.uploader.upload(req.file.path)
+    console.log(photoCloudinary)
+    res.player.profilePic = photoCloudinary.url
+  }
+
+  try {
+    const updatedTeam = await res.player.save()
+
+    res.status(200).json({ user: updatedTeam })
+  } catch (error) {
+    console.log(error);
+    res.status(400).json({ message: error.message })
+
+  }
+})
+
+//middlewares
+async function getPlayer(req, res, next) {
+  let player
+  try {
+    player = await Player.findById(req.params.id)
+    if (player == null) {
+      return res.status(404).json({ message: 'Cannot find player' })
+    }
+  } catch (error) {
+    return res.status(500).json({ message: error.message })
+  }
+
+  res.player = player
+  next()
+}
+
+async function getSport(req, res, next) {
+  let sport
+  try {
+    sport = await Sport.findById(req.params.idSport)
+    if (sport == null) {
+      return res.status(404).json({ message: 'Cannot find sport' })
+    }
+  } catch (error) {
+    return res.status(500).json({ message: error.message })
+  }
+
+  res.sport = sport
+  next()
+}
+
+function authentificateToken(req, res, next) {
+  const autHeader = req.headers['authorization']
+  const token = autHeader && autHeader.split(' ')[1]
+
+  if (token == null) return res.status(401).json({ reponse: "no token" })
+
+}
 module.exports = router;

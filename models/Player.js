@@ -6,12 +6,20 @@ const playerSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'team'
     }],
-    // sport: [{
-    //     type: mongoose.Schema.Types.ObjectId,
-    //     ref: 'sport'
-    // }],
+
     sports: [{
-        _id: false, sport: { type: mongoose.Schema.Types.ObjectId, ref: 'sport' }, strongLeg: String, strongHand: String,
+        _id: false,
+        sport: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'sport'
+        },
+        strongLeg: String,
+        strongHand: String,
+        favCourt: String,
+        knowledge: String,
+        idol: String,
+        role: String,
+        position: String,
     }],
     rating: {
         type: String
@@ -19,11 +27,6 @@ const playerSchema = new mongoose.Schema({
     description: {
         type: String
     },
-    // strongHand: {
-    //     type: String
-    // },
-    // strongLeg: {
-    //     type: String
-    // },
+
 })
 module.exports = User.discriminator('player', playerSchema)

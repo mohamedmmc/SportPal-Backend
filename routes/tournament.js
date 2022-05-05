@@ -352,9 +352,5 @@ router.get('/:id', async (req, res) => {
     await Tournament.find({ owner: req.params.id }).then(data => res.json(data)).catch(erro => res.status(500).json("error !"));
 
 
-<<<<<<< Updated upstream
-module.exports = router;
-=======
 })
 module.exports = router;
->>>>>>> Stashed changes

@@ -25,11 +25,7 @@
     "nodemailer": "^6.7.2",
     "nodemon": "^2.0.15",
     "path": "^0.12.7",
-<<<<<<< Updated upstream
-    "puppeteer": "^13.4.0",
-=======
     "puppeteer": "^13.6.0",
->>>>>>> Stashed changes
     "util": "^0.12.4"
   }
 }

@@ -2,7 +2,11 @@ const mongoose = require('mongoose')
 
 
 const notificationSchema = new mongoose.Schema({
-    user: [{
+    from: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'user'
+    },
+    to: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'user'
     }],
@@ -10,12 +14,12 @@ const notificationSchema = new mongoose.Schema({
         type: String
     },
     date: {
-        type: Date
+        type: Date,
+        default: Date.now
     },
-<<<<<<< Updated upstream
-    sent: {
-        type: Boolean
-=======
+    type: {
+        type: String
+    },
     accept: {
         type: Boolean,
         default: false
@@ -23,7 +27,6 @@ const notificationSchema = new mongoose.Schema({
     terrain: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'terrain'
->>>>>>> Stashed changes
     }
 })
 

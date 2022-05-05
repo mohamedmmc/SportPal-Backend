@@ -6,6 +6,7 @@ const baseOptions = {
     collection: 'user'
 }
 const userSchema = new mongoose.Schema({
+
     fullName: {
         type: String
     },
@@ -30,11 +31,11 @@ const userSchema = new mongoose.Schema({
     isVerified: {
         type: Boolean, default: false
     },
-    address: {
-        type: String
-    },
+    address: [{
+        type: Number
+    }],
     birthDate: {
-        type: Date
+        type: String
     },
     gender: {
         type: String
@@ -46,6 +47,10 @@ const userSchema = new mongoose.Schema({
     weight: {
         type: Number
     },
+    friends: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'user'
+    }]
 
 }, baseOptions)
 
