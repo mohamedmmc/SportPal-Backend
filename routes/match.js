@@ -56,9 +56,10 @@ router.get('/:id', async function (req, res, next) {
 /* Creating One Team */
 router.post("/indivMatch", async (req, res, next) => {
 
-
+    const matchsaaa = await Match.find()
     const matchs = await Match.find().populate("teamA").populate("teamB")
     if (matchs) {
+        console.log(matchsaaa);
         for (i = 0; i < matchs.length; i++) {
             if ((matchs[i].teamA.players[0]._id == req.body.teamA && matchs[i].teamB.players[0]._id == req.body.teamB) ||
                 (matchs[i].teamB.players[0]._id == req.body.teamA && matchs[i].teamB.players[0]._id == req.body.teamA)) {
