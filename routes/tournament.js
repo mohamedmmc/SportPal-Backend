@@ -313,6 +313,41 @@ router.patch("/:id", multer, getTournament, async (req, res) => {
     }
 })
 
+/* Updating One */
+router.patch("/generate/:id", multer, getTournament, async (req, res) => {
+    res.tournament.matchs = []
+    const myTournamentPlayers = []
+
+    for (let index = 0; index < res.tournament.participants.length; index++) {
+        if (res.tournament.participants[index].isEliminated == false) {
+            myTournamentPlayers.push(res.tournament.participants[index])
+        }
+    }
+
+    for (let i = 0; i < myTournamentPlayers.length; i++) {
+        console.log(myTournamentPlayers.length + "Ena taille ! ");
+        const match = new Match({
+            teamA: myTournamentPlayers.pop().team,
+            teamB: myTournamentPlayers.pop().team,
+
+        })
+
+
+        res.tournament.matchs.push(match)
+
+    }
+
+
+    console.log(res.tournament);
+    // try {
+    //     const updatedTeam = await res.user.save()
+    //     res.json({ team: updatedTeam })
+    // } catch (error) {
+    //     res.status(400).json({ message: error.message })
+
+    // }
+})
+
 /* Deleting One */
 router.delete("/:id", getTournament, async (req, res) => {
     try {
@@ -345,6 +380,7 @@ async function getTournament(req, res, next) {
 router.post('/addtournament', (req, res, next) => {
 
     req.body.owner = mongoose.Types.ObjectId(req.body.owner)
+    req.body.place = mongoose.Types.ObjectId(req.body.place)
     new Tournament(req.body).save().then(data => res.status(200).json(data))
         .catch(error => res.status(500).json(error));
 })

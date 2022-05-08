@@ -6,7 +6,6 @@ const playerSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'team'
     }],
-
     sports: [{
         _id: false,
         sport: {
@@ -27,6 +26,5 @@ const playerSchema = new mongoose.Schema({
     description: {
         type: String
     },
-
 })
 module.exports = User.discriminator('player', playerSchema)

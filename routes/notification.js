@@ -68,7 +68,7 @@ router.post("/friend-request", getNotificationFriend, async (req, res, next) => 
     }
 })
 
-/* Creating friend notificaiton */
+/* Creating Join notificaiton */
 router.post("/join-request", getNotificationJoin, async (req, res, next) => {
 
     var to = []
@@ -150,8 +150,6 @@ router.post("/confirm", getUsers, async (req, res, next) => {
                     }
 
 
-
-
                     return res.status(201).json({ dbone });
 
                 }
@@ -174,12 +172,21 @@ router.post("/confirm-join", getUsers, async (req, res, next) => {
                 if (notification[i].to[j] == req.body.to) {
                     notification[i].accept = true;
                     if (notification[i].type == "Join request") {
-                        // res.user1.friends.push(req.body.to)
+
+                        console.log("req.body.from : " + req.body.from)
+                        const team = await Team.findById(res.user2.team)
+                        console.log(team + " i'am a team BOIIIIIIII");
+                        team.players.push(req.body.from)
+
+                        const newTeam = await team.save()
+                        console.log("Ena team jdida !  :   >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> " + newTeam);
+
+                        console.log("MY notif" + notification[i])
+                        const dbone = await notification[i].save();
+
+                        return res.status(201).json({ newTeam, dbone });
                         // res.user2.friends.push(req.body.from)
-                        console.log(req.body.to);
                     }
-                    // const done = await res.user1.save();
-                    // const aaa = await res.user2.save();
                     console.log("MY notif" + notification[i])
                     // const dbone = await notification[i].save();
                     return res.status(201).json({ done });

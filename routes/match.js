@@ -2,45 +2,101 @@ var express = require('express');
 var router = express.Router();
 var multer = require('../middleware/multer')
 var Player = require('../models/Player')
-var Arbitre = require('../models/arbitre')
 var Team = require('../models/Team')
 var Match = require('../models/Match')
+var Notification = require('../models/Notification');
+const User = require('../models/User');
 
 /* GET All Teams. */
 router.get('/', async function (req, res, next) {
     try {
-        const matchs = await Match.find()
+        const matchs = await Match.find().populate('teamA').populate('teamB')
+
         res.json(matchs)
     } catch (error) {
         res.status(500).json({ message: error.message })
     }
 });
 
-/* Creating One Team */
-router.post("/", async (req, res, next) => {
+/* GET All Teams. */
+router.get('/:id', async function (req, res, next) {
+    let mymatchs = []
+    let listPlayers
+    try {
+        const matchs = await Match.find()
+            .populate({ path: 'teamA', populate: { path: 'players' } })
+            .populate({ path: 'teamB', populate: { path: 'players' } })
+            .populate('terrain')
 
-    const teamA = new Team({
-        ...req.body
+
+        listPlayers = await Team.find({ teamA: matchs.teamA }).populate('players')
+
+        //console.log(listPlayers);
+
+        matchs.forEach((el) => {
+            //console.log("hedha player fi match team A : " + el.teamB.players[0].id + " w hedha el id user mte3na : " + req.params.id)
+            for (i = 0; i < el.teamB.players.length; i++) {
+                if (el.teamB.players[i].id == req.params.id) {
+                    mymatchs.push(el)
+                }
+            }
+            for (i = 0; i < el.teamA.players.length; i++) {
+                if (el.teamA.players[i].id == req.params.id) {
+                    mymatchs.push(el)
+                }
+            }
+        })
+        // if(matchs.teamA.players)
+        res.status(200).json(mymatchs)
+    } catch (error) {
+        res.status(500).json({ message: error.message })
+    }
+});
+
+/* Creating One Team */
+router.post("/indivMatch", async (req, res, next) => {
+
+    const matchsaaa = await Match.find()
+    const matchs = await Match.find().populate("teamA").populate("teamB")
+    if (matchs) {
+        console.log(matchsaaa);
+        for (i = 0; i < matchs.length; i++) {
+            if ((matchs[i].teamA.players[0]._id == req.body.teamA && matchs[i].teamB.players[0]._id == req.body.teamB) ||
+                (matchs[i].teamB.players[0]._id == req.body.teamA && matchs[i].teamB.players[0]._id == req.body.teamA)) {
+                return res.status(403).json('duplicate')
+            }
+        }
+
+    } const teamA = new Team({
+        players: req.body.teamA
     })
     const teamB = new Team({
-        ...req.body
+        players: req.body.teamB
     })
-    const arbitre = new Arbitre({
-        ...req.body
-    })
+    // const arbitre = new Arbitre({
+    //     ...req.body
+    // })
     // const terrain = new Terrain({
     //     ...req.body
     // })
     const match = new Match({
         ...req.body,
-        teamA: teamA,
-        teamB: teamB,
-        arbitre: arbitre,
+        teamA: teamA._id,
+        teamB: teamB._id,
+
     })
-    console.log("Posted Successfuly" + match)
+
+
+
+    const notif = await Notification.findById(req.body.id)
+
+
     try {
+        await notif.remove();
+        await teamA.save();
+        await teamB.save();
         const newMatch = await match.save();
-        res.status(201).json({ newMatch });
+        res.status(201).json(newMatch);
     } catch (error) {
         res.status(400).json({ message: error.message })
     }
@@ -85,6 +141,16 @@ router.delete("/:id", getMatch, async (req, res) => {
     }
 })
 
+
+/* Add to favorite */
+router.patch("/mymatch/:id", getMatch, async (req, res) => {
+    try {
+
+        res.json(res.match)
+    } catch (error) {
+        res.status(500).json({ message: error.message })
+    }
+})
 
 // MiddleWares
 

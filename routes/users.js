@@ -5,7 +5,6 @@ var router = express.Router();
 var User = require('../models/User')
 var jwt = require('jsonwebtoken')
 var Bcrypt = require('bcrypt')
-var crypto = require('crypto')
 var Token = require('../models/Token')
 var nodemailer = require("nodemailer");
 
@@ -31,37 +30,122 @@ router.get('/otp', async function (req, res, next) {
 
 //Login
 router.post('/login', getUserByMail, async (req, res, next) => {
-  try {
-    if (await Bcrypt.compare(req.body.password, res.user.password)) {
-      const token = jwt.sign({ username: res.user.email }, "SECRET")
-      if (token) {
-        res.json({
-          token: token,
-          user: res.user
-        })
+  console.log(res.user)
+
+  const token = jwt.sign({ username: res.user.email }, "SECRET")
+  if (req.body.password != null) {
+    console.log("bel password", res.user)
+    try {
+      if (await Bcrypt.compare(req.body.password, res.user.password)) {
+
+        if (token) {
+          return res.json({
+            token: token,
+            user: res.user
+          })
+        }
+      } else {
+        return res.status(401).json({ error: "pass incorrect" })
       }
-    } else {
-      res.status(401).json({ error: "pass incorrect" })
+    } catch (error) {
+      return res.status(500).json({ reponse: error.message })
     }
-  } catch (error) {
-    res.status(500).json({ reponse: error.message })
+
   }
+
+
+
+  else {
+    console.log("maghir password", res.user)
+    if (token) {
+      return res.json({
+        token: token,
+        user: res.user
+      })
+    }
+
+  }
+
 })
+
+
+router.post('/checkMail', async function (req, res, next) {
+  try {
+    const user = await User.findOne({ email: req.body.email })
+    if (user) {
+      return res.status(200).json({ reponse: user })
+    } else {
+      return res.status(203).json({ reponse: "good" })
+    }
+
+  } catch (error) {
+    res.status(500).json({ message: error.message })
+  }
+});
+
+/* GET users listing. */
+router.get('/otp', async function (req, res, next) {
+  try {
+    const user = await User.find()
+    res.json(user)
+  } catch (error) {
+    res.status(500).json({ message: error.message })
+  }
+});
 
 // Delete one user
-router.delete('/:id', getUserById, async (req, res) => {
+router.delete('/:id', getUserById, async (req, res, next) => {
   try {
-    //get all user articles and delete them
-    const user = await User.findById(res.user.id)
+    user = await User.findById(req.params.id)
+    if (user == null) {
+      return res.status(404).json({ reponse: "mail" })
+    }
 
-    //delete the user
-    await res.user.remove()
-    res.json({ reponse: "Supprime avec succes" })
   } catch (error) {
-    res.json({ erreur: error.message })
+    return res.status(500).json({ reponse: error.message })
   }
+  res.user = user
+  next()
 })
-// Confirme email
+
+async function checkToken(req, res, next) {
+  let token
+  try {
+    token = await Token.findOne({ email: req.body.email })
+
+  } catch (error) {
+    return res.status(500).json({ reponse: error.message })
+  }
+  res.token = token
+  next()
+}
+async function getUserById(req, res, next) {
+  let user
+  try {
+    user = await User.findById(req.params.id)
+    if (user == null) {
+      return res.status(404).json({ reponse: "Utilisateur non trouve" })
+    }
+  } catch (error) {
+    return res.status(500).json({ reponse: error.message })
+  }
+  res.user = user
+  next()
+}
+
+function authentificateToken(req, res, next) {
+  const autHeader = req.headers['authorization']
+  const token = autHeader && autHeader.split(' ')[1]
+
+  if (token == null) return res.status(401).json({ reponse: "no token" })
+
+  jwt.verify(token, "SECRET", (err, user) => {
+    if (err) return res.status(403).json({ reponse: "token invalide" })
+    req.user = user
+    next()
+  })
+
+}
 router.get('/confirmation/:email/:token', async (req, res, next) => {
   Token.findOne({ token: req.params.token }, function (err, token) {
     // token is not found into database i.e. token may have expired 
@@ -392,13 +476,17 @@ router.get('/confirmation/:email/:token', async (req, res, next) => {
   });
 
 });
-// Forgot password
-router.post('/forgotPassword', getUserByMail, (req, res, next) => {
 
+router.post('/forgotPassword', getUserByMail, checkToken, (req, res, next) => {
   // user is not found into database
   if (!res.user) {
     return res.status(400).send({ msg: 'We were unable to find a user with that email. Make sure your Email is correct!' });
-  } else {
+  } else if (res.token) {
+    return res.status(403).send({ token: res.token.token });
+
+  }
+
+  else {
     var seq = (Math.floor(Math.random() * 10000) + 10000).toString().substring(1);
     var token = new Token({ email: res.user.email, token: seq });
     console.log('i am a token' + token)
@@ -412,16 +500,198 @@ router.post('/forgotPassword', getUserByMail, (req, res, next) => {
     var smtpTrans = nodemailer.createTransport({
       service: 'gmail',
       auth: {
-        user: 'fanart3a18@gmail.com',
-        pass: process.env.MDPMail
+        user: "m'sahel.mohamedhabib@esprit.tn",
+        pass: process.env.mdphMail
       }
     });
 
     var mailOptions = {
-      from: 'fanart3a18@gmail.com', to: res.user.email, subject:
-        'Mot de passe oubliè SportPal', text: 'Vous recevez cet email car vous (ou quelqu\'n d\'autre) a fait cette demande de mot de passe oubliè.\n\n' +
-          'Merci de cliquer sur le lien suivant ou copier le sur votre navigateur pour completer le processus:\n\n' + 'Le code est :' + token.token + '\n\n' +
-          '\n\n Si vous n\'avez pas fait cette requete, veuillez ignorer ce message et votre mot de passe sera le méme.\n'
+      from: "m'sahel.mohamedhabib@esprit.tn", to: res.user.email, subject:
+        'Mot de passe oubliè SportPal', html: '<div class="es-wrapper-color">' +
+          '<table class="es-wrapper" width="100%" cellspacing="0" cellpadding="0">' +
+          //HEADER
+          '<tbody>' +
+          '<tr>' +
+          '<td class="esd-structure es-p20t es-p20b es-p20r es-p20l" style="background-color: #3d5ca3;" bgcolor="#3d5ca3" align="left">' +
+          '<table class="es-left" cellspacing="0" cellpadding="0" align="center">' +
+          '<tbody>' +
+          '<tr>' +
+          '<td class="es-m-p20b esd-container-frame" width="270" align="left">' +
+          '<table width="100%" cellspacing="0" cellpadding="0">' +
+          '<tbody>' +
+          '<tr>' +
+          '<td class="esd-block-image es-m-p0l es-m-txt-c" align="center" style="font-size: 0px;padding: 20px">' +
+          '<a href="https://www.facebook.com/Sportpaltn/" target="_blank"><img src="https://scontent.ftun8-1.fna.fbcdn.net/v/t39.30808-6/279147670_121269590538464_6408600160629464424_n.jpg?_nc_cat=103&ccb=1-6&_nc_sid=09cbfe&_nc_ohc=1db2m7SYrvAAX_JYSFA&_nc_oc=AQk5hX_kDMjGnnOsPj058dIPmx04da9RobIcAf-wpm6JeUFkDUyKNpA6pTg7aQoJ1lU&_nc_ht=scontent.ftun8-1.fna&oh=00_AT8b60RhSV9y2PYWFcg_ebIPrNSP4JaZEmY7z0-h650G6A&oe=627D59FC" alt style="display: block;border-top-left-radius: 50% 50%;border-top-right-radius: 50% 50%;border-bottom-left-radius: 50% 50%;border-bottom-right-radius: 50% 50%;" width="183"></a>' +
+          '</td>' +
+          '</tr>' +
+          '</tbody>' +
+          '</table>' +
+          '</td>' +
+          ' </tr>' +
+          '</tbody>' +
+          '</table>' +
+          '</td>' +
+          //container 
+          '<tbody>' +
+          '<tr>' +
+          '<td class="esd-structure es-p40t es-p20r es-p20l" style="background-color: transparent;" bgcolor="transparent" align="left">' +
+          '<table width="100%" cellspacing="0" cellpadding="0">' +
+          '<tbody>' +
+          '<tr>' +
+          '<td class="esd-container-frame" width="560" valign="top" align="center">' +
+          '<table style="background-position: left top;" width="100%" cellspacing="0" cellpadding="0">' +
+          '<tbody>' +
+          '<tr>' +
+          '<td class="esd-block-image es-p5t es-p5b" align="center" style="font-size:0">' +
+          '<a target="_blank"><img src="https://tlr.stripocdn.email/content/guids/CABINET_dd354a98a803b60e2f0411e893c82f56/images/23891556799905703.png" alt style="display: block;" width="175"></a>' +
+          '</td>' +
+          '</tr>' +
+          '<tr>' +
+          '<td class="esd-block-text es-p15t es-p15b" align="center">' +
+          '<h1 style="color: #333333; font-size: 20px;"><strong>FORGOT YOUR </strong></h1>' +
+          '<h1 style="color: #333333; font-size: 20px;"><strong>&nbsp;PASSWORD?</strong></h1>' +
+          '</td>' +
+          '</tr>' +
+          '<tr>' +
+          '<td class="esd-block-text es-p40r es-p40l" align="center">' +
+          '<p>HI,' + res.user.fullName + '</p>' +
+          '</td>' +
+          '</tr>' +
+          '<tr>' +
+          '<td class="esd-block-text es-p35r es-p40l" align="left">' +
+          '<p style="text-align: center;">There was a request to change your password!</p>' +
+          '</td>' +
+          '</tr>' +
+          '<tr>' +
+          '<td class="esd-block-text es-p25t es-p40r es-p40l" align="center">' +
+          '<p>If did not make this request, just ignore this email. Otherwise, please copy the code bellow and past it on the app</p>' +
+          '</td>' +
+          '</tr>' +
+          '<tr>' +
+          '<td class="esd-block-text es-p25t es-p40r es-p40l" align="center">' +
+          '<p>This is the code:' + token.token + '</p>' +
+          '</td>' +
+          '</tr>' +
+          '</tbody>' +
+          '</table>' +
+          '</td>' +
+          '</tr>' +
+          '</tbody>' +
+          '</table>' +
+          '</td>' +
+          //follow us
+          '<tbody>' +
+          '<tr>' +
+          '<td class="esd-structure es-p20t es-p10r es-p10l" align="left">' +
+          '<table class="es-left" cellspacing="0" cellpadding="0" align="left">' +
+          '<tbody>' +
+          '<tr>' +
+          '<td class="esd-container-frame" width="199" align="left">' +
+          '<table style="background-position: center center;" width="100%" cellspacing="0" cellpadding="0">' +
+          '<tbody>' +
+          '<tr>' +
+          '<td class="esd-block-text es-p15t es-m-txt-c" align="right">' +
+          '<p style="font-size: 16px; color: #666666;"><strong>Follow us:</strong></p>' +
+          '</td>' +
+          '</tr>' +
+          '</tbody>' +
+          '</table>' +
+          '</td>' +
+          '</tr>' +
+          '</tbody>' +
+          '</table>' +
+          '<table class="es-right" cellspacing="0" cellpadding="0" align="right">' +
+          '<tbody>' +
+          '<tr>' +
+          '<td class="esd-container-frame" width="361" align="left">' +
+          '<table style="background-position: center center;" width="100%" cellspacing="0" cellpadding="0">' +
+          '<tbody>' +
+          '<tr>' +
+          '<td class="esd-block-social es-p10t es-p5b es-m-txt-c" align="left" style="font-size:0">' +
+          '<table class="es-table-not-adapt es-social" cellspacing="0" cellpadding="0">' +
+          '<tbody>' +
+          '<tr>' +
+          '<td class="es-p10r" valign="top" align="center">' +
+          '<a target="_blank" href><img src="https://tlr.stripocdn.email/content/assets/img/social-icons/rounded-gray/facebook-rounded-gray.png" alt="Fb" title="Facebook" width="32"></a>' +
+          '</td>' +
+          '<td class="es-p10r" valign="top" align="center">' +
+          '<a target="_blank" href><img src="https://tlr.stripocdn.email/content/assets/img/social-icons/rounded-gray/twitter-rounded-gray.png" alt="Tw" title="Twitter" width="32"></a>' +
+          '</td>' +
+          '<td class="es-p10r" valign="top" align="center">' +
+          '<a target="_blank" href><img src="https://tlr.stripocdn.email/content/assets/img/social-icons/rounded-gray/instagram-rounded-gray.png" alt="Ig" title="Instagram" width="32"></a>' +
+          '</td>' +
+          '<td class="es-p10r" valign="top" align="center">' +
+          '<a target="_blank" href><img src="https://tlr.stripocdn.email/content/assets/img/social-icons/rounded-gray/youtube-rounded-gray.png" alt="Yt" title="Youtube" width="32"></a>' +
+          '</td>' +
+          '<td class="es-p10r" valign="top" align="center">' +
+          '<a target="_blank" href><img src="https://tlr.stripocdn.email/content/assets/img/social-icons/rounded-gray/linkedin-rounded-gray.png" alt="In" title="Linkedin" width="32"></a>' +
+          '</td>' +
+          '</tr>' +
+          '</tbody>' +
+          '</table>' +
+          '</td>' +
+          '</tr>' +
+          '</tbody>' +
+          '</table>' +
+          '</td>' +
+          '</tr>' +
+          '</tbody>' +
+          '</table>' +
+          '</td>' +
+          //contact us
+          '<tbody>' +
+          '<tr>' +
+          '<td class="esd-structure es-p5t es-p20b es-p20r es-p20l" align="left">' +
+          '<table width="100%" cellspacing="0" cellpadding="0">' +
+          '<tbody>' +
+          '<tr>' +
+          '<td class="esd-container-frame" width="560" valign="top" align="center">' +
+          '<table width="100%" cellspacing="0" cellpadding="0">' +
+          '<tbody>' +
+          '<tr>' +
+          '<td class="esd-block-text" esd-links-color="#666666" align="center">' +
+          '<p style="font-size: 14px;">Contact us: <a target="_blank" style="font-size: 14px; color: #666666;" href="tel:123456789">+216 29 473 912</a> | <a target="_blank" href="mailto:m\'sahel.mohamedhabib@esprit.tn" style="font-size: 14px; color: #666666;">m\'sahel.mohamedhabib@esprit.tn</a></p>' +
+          '</td>' +
+          '</tr>' +
+          '</tbody>' +
+          '</table>' +
+          '</td>' +
+          '</tr>' +
+          '</tbody>' +
+          '</table>' +
+          '</td>' +
+          //have any question
+          '<tbody>' +
+          '<tr>' +
+          '<td class="esd-structure es-p10t es-p30b es-p20r es-p20l" style="background-color: #0b5394;" bgcolor="#0b5394" align="left">' +
+          '<table width="100%" cellspacing="0" cellpadding="0">' +
+          '<tbody>' +
+          '<tr>' +
+          '<td class="esd-container-frame" width="560" valign="top" align="center">' +
+          '<table width="100%" cellspacing="0" cellpadding="0">' +
+          '<tbody>' +
+          '<tr>' +
+          '<td class="esd-block-text es-p5t es-p5b" align="left" style="padding-left: 20px;">' +
+          '<h2 style="font-size: 16px; color: #ffffff;"><strong>Have quastions?</strong></h2>' +
+          '</td>' +
+          '</tr>' +
+          '<tr>' +
+          '<td esd-links-underline="none" esd-links-color="#ffffff" class="esd-block-text es-p5b" align="left">' +
+          '<p style="font-size: 14px; padding-left: 20px; color: #ffffff;">We are here to help, learn more about us <a target="_blank" style="font-size: 14px; color: #ffffff; text-decoration: none;">here</a></p>' +
+          '<p style="font-size: 14px; padding-left: 20px; color: #ffffff;">or <a target="_blank" style="font-size: 14px; text-decoration: none; color: #ffffff;">contact us</a><br></p>' +
+          '</td>' +
+          '</tr>' +
+          '</tbody>' +
+          '</table>' +
+          '</td>' +
+          '</tr>' +
+          '</tbody>' +
+          '</table>' +
+          '</td>' +
+          '</tr>' +
+          '</tbody>' +
+          '</table>' +
+          '</div>'
     };
     // Send email (use credintials of SendGrid)
 
@@ -499,6 +769,14 @@ async function getUserByMail(req, res, next) {
   next()
 }
 
+function authentificateToken(req, res, next) {
+  const autHeader = req.headers['authorization']
+  const token = autHeader && autHeader.split(' ')[1]
+
+  if (token == null) return res.status(401).json({ reponse: "no token" })
+
+}
+
 async function getUserById(req, res, next) {
   let user
   try {
@@ -513,18 +791,17 @@ async function getUserById(req, res, next) {
   next()
 }
 
-function authentificateToken(req, res, next) {
-  const autHeader = req.headers['authorization']
-  const token = autHeader && autHeader.split(' ')[1]
+router.delete('/:id', getUserById, async (req, res) => {
+  try {
+    //get all user articles and delete them
+    const user = await User.findById(res.user.id)
 
-  if (token == null) return res.status(401).json({ reponse: "no token" })
-
-  jwt.verify(token, "SECRET", (err, user) => {
-    if (err) return res.status(403).json({ reponse: "token invalide" })
-    req.user = user
-    next()
-  })
-
-}
+    //delete the user
+    await res.user.remove()
+    res.json({ reponse: "Supprime avec succes" })
+  } catch (error) {
+    res.json({ erreur: error.message })
+  }
+})
 
 module.exports = router;

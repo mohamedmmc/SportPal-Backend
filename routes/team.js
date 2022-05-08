@@ -111,6 +111,25 @@ router.patch("/:id", multer, getTeam, async (req, res) => {
     }
 })
 
+/* Leave One team */
+router.patch("/:id", multer, getTeam, async (req, res) => {
+    if (req.body.players != null) {
+        res.team.players = req.body.players
+    }
+    if (req.body.captain != null) {
+        res.team.captain = req.body.captain
+    }
+    if (req.body.typeSport != null) {
+        res.team.typeSport = req.body.typeSport
+    }
+    try {
+        const updatedTeam = await res.user.save()
+        res.json({ team: updatedTeam })
+    } catch (error) {
+        res.status(400).json({ message: error.message })
+
+    }
+})
 /* Deleting One */
 router.delete("/:id", getTeam, async (req, res) => {
     try {
