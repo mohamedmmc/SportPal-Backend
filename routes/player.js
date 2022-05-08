@@ -72,13 +72,13 @@ router.get('/:id', async function (req, res, next) {
             if (!player[i].friends.includes(req.params.id)) {
               players.push(player[i])
             }
-            for (j = 0; j < player[i].friends.length; j++) {
-              if (player[i].friends[j].id != req.params.id) {
-                players.push(player[i])
-                break;
-              }
+            // for (j = 0; j < player[i].friends.length; j++) {
+            //   if (player[i].friends[j].id != req.params.id) {
+            //     players.push(player[i])
+            //     break;
+            //   }
 
-            }
+            // }
             // //players.push(player[i])
           }
         }

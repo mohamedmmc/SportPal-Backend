@@ -1,7 +1,11 @@
 const mongoose = require('mongoose')
 
+//Changed on 12:20 4  mars Tournament
 
 const tournamentSchema = new mongoose.Schema({
+    title: {
+        type: String
+    },
     typeSport: {
         type: String
     },
@@ -20,7 +24,8 @@ const tournamentSchema = new mongoose.Schema({
         team: { type: mongoose.Schema.Types.ObjectId, ref: 'team' },
         points: Number,
         isEliminated: Boolean,
-    }],
+    }
+    ],
     matchs: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'match'
@@ -31,14 +36,28 @@ const tournamentSchema = new mongoose.Schema({
         default: null
     },
     prize: {
-        type: Number
+        type: Number,
+        default: null
     },
     from: {
-        type: Date
+        type: Date,
+        default: Date.now,
     },
     to: {
         type: Date
+    },
+    place: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'complexe',
+        default: null
+    },
+    entriePrice: {
+        type: Number
+    },
+    creditCard: {
+        type: String
     }
+
 })
 
 module.exports = mongoose.model('tournament', tournamentSchema)

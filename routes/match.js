@@ -58,8 +58,9 @@ router.post("/indivMatch", async (req, res, next) => {
 
     const matchsaaa = await Match.find()
     const matchs = await Match.find().populate("teamA").populate("teamB")
+
     if (matchs) {
-        console.log(matchsaaa);
+        console.log(matchs);
         for (i = 0; i < matchs.length; i++) {
             if ((matchs[i].teamA.players[0]._id == req.body.teamA && matchs[i].teamB.players[0]._id == req.body.teamB) ||
                 (matchs[i].teamB.players[0]._id == req.body.teamA && matchs[i].teamB.players[0]._id == req.body.teamA)) {
@@ -92,7 +93,7 @@ router.post("/indivMatch", async (req, res, next) => {
 
 
     try {
-        await notif.remove();
+        // await notif.remove();
         await teamA.save();
         await teamB.save();
         const newMatch = await match.save();
