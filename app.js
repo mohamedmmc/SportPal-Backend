@@ -13,6 +13,18 @@ var playerRouter = require('./routes/player');
 var ComplexeOwnerRouter = require('./routes/complexeOwn');
 var AdminRouter = require('./routes/admin');
 var ArbitreRouter = require('./routes/arbitre');
+<<<<<<< Updated upstream
+=======
+var newsRouter = require('./routes/news');
+var teamRouter = require('./routes/team');
+var matchRouter = require('./routes/match');
+var tournamentRouter = require('./routes/tournament');
+var notificationRouter = require('./routes/notification');
+var sportRouter = require('./routes/sport');
+var complexeRouter = require('./routes/complexe');
+var TerrainRouter = require('./routes/terrain');
+var FavoriteRouter = require('./routes/favourite');
+>>>>>>> Stashed changes
 
 var app = express();
 

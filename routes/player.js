@@ -19,6 +19,111 @@ router.get('/', async function (req, res, next) {
   }
 });
 
+<<<<<<< Updated upstream
+=======
+router.get('/detailPlayer/:id', async function (req, res, next) {
+  try {
+    const player = await Player.findById(req.params.id)
+    res.status(200).json({ player })
+  } catch (error) {
+    res.status(500).json({ message: error.message })
+  }
+});
+
+router.delete('/friends/:id', async function (req, res, next) {
+  try {
+    let players = []
+    const player = await User.findById(req.params.id).populate('friends')
+
+    if (player == null) {
+      res.status(404).json({ message: "no users" })
+    }
+    else {
+      for (i = 0; i < player.friends.length; i++) {
+        players.push(player.friends[i])
+
+      }
+    }
+    res.status(200).json({ players })
+  }
+  catch (error) {
+    res.status(500).json({ message: error.message })
+  }
+});
+
+router.get('/:id', async function (req, res, next) {
+  try {
+    let players = []
+    const player = await Player.find({ type: "player" })
+    let notifs = []
+    if (player == null) {
+      res.status(404).json({ message: "no users" })
+    }
+    else {
+
+      for (i = 0; i < player.length; i++) {
+        if (player[i].id != req.params.id) {
+          if (player[i].friends.length == 0) {
+            players.push(player[i])
+          }
+          else {
+            //players.push(player[i])
+            if (!player[i].friends.includes(req.params.id)) {
+              players.push(player[i])
+            }
+            // for (j = 0; j < player[i].friends.length; j++) {
+            //   if (player[i].friends[j].id != req.params.id) {
+            //     players.push(player[i])
+            //     break;
+            //   }
+
+            // }
+            // //players.push(player[i])
+          }
+        }
+      }
+    }
+    res.status(200).json({ players })
+  }
+  catch (error) {
+    res.status(500).json({ message: error.message })
+  }
+});
+
+router.get('/findBySport/', async function (req, res, next) {
+  var sportPlayer = []
+  try {
+    const player = await User.find({ type: "player" }).populate('')
+    console.log(player.sports)
+    for (i = 0; i < player.sports.length; i++) {
+
+    }
+    player.sports.forEach(element => {
+      if (element.sport == req.body.sports) {
+        sportPlayer.push(player)
+      }
+    });
+    res.json(sportPlayer)
+  } catch (error) {
+    res.status(500).json({ message: error.message })
+  }
+});
+
+class sports {
+  constructor(sport, strongLeg, strongHand, favCourt, knowledge, idol, role, position, type) {
+    this.sport = sport;
+    this.strongLeg = strongLeg;
+    this.strongHand = strongHand;
+    this.favCourt = favCourt;
+    this.knowledge = knowledge;
+    this.idol = idol;
+    this.role = role;
+    this.position = position;
+    this.type = type;
+  }
+}
+
+>>>>>>> Stashed changes
 //add player
 router.post('/', multer, async (req, res) => {
 
