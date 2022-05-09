@@ -114,33 +114,41 @@ router.patch("/:id", multer, getTeam, async (req, res) => {
 /* Leave One team */
 router.patch("/leave/:id/:idplayer", multer, getTeam, async (req, res) => {
 
-    const playerLeaving = await Player.findById(req.params.idplayer).populate('team')
 
+    const playerLeaving = await Player.findById(req.params.idplayer).populate('team')
     if (res.team.captain._id == playerLeaving.id) {
-        for (let i = 0; i < res.team.players.length; i++) {
-            for (let j = 0; j < res.team.players[i].team.length; j++) {
-                if (res.team.players[i].team[j].id == res.team.id) {
-                    delete res.team.players[i].team[j]
+
+        const playersmod = await Player.find({ team: req.params.id }).populate('team')
+        for (let i = 0; i < playersmod.length; i++) {
+            for (let j = 0; j < playersmod[i].team.length; j++) {
+                if (playersmod[i].team[j]._id == res.team.id) {
+                    console.log("on supprime " + playersmod[i].fullName + " de " + res.team.id);
+                    playersmod[i].team.splice(j, 1)
+                    j--;
+                    await playersmod[i].save()
                 }
             }
         }
-
-        console.log("ena howa el capitain");
-
+        await res.team.remove()
+        return res.status(200).json('deleted')
+    } else {
         for (let index = 0; index < playerLeaving.team.length; index++) {
             if (playerLeaving.team[index].id == res.team.id) {
-                delete playerLeaving.team[index]
+                playerLeaving.team.splice(index, 1)
+                index--;
+                await playerLeaving.save()
             }
         }
-        // await res.team.remove()
+        for (let i = 0; i < res.team.players.length; i++) {
+            if (res.team.players[i]._id == playerLeaving.id) {
+                res.team.players.splice(i, 1)
+                i--;
+                await res.team.save()
+            }
+        }
+        return res.status(200).json('deleted')
     }
 
-    try {
-        // const updatedTeam = await res.user.save()
-        res.json(playerLeaving)
-    } catch (error) {
-        res.status(400).json({ message: error.message })
-    }
 })
 /* Deleting One */
 router.delete("/:id", getTeam, async (req, res) => {

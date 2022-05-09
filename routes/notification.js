@@ -57,7 +57,7 @@ router.post("/friend-request", getNotificationFriend, async (req, res, next) => 
         from: req.body.from,
         to: req.body.to,
         description: "Sent you a friend request",
-        type: "Friend request"
+        typeNotification: "Friend request"
     })
 
     try {
@@ -98,7 +98,7 @@ router.post("/match-request", getNotificationMatch, async (req, res, next) => {
         from: req.body.from,
         to: req.body.to,
         description: "Sent you a match request",
-        type: "Match request",
+        typeNotification: "Match request",
         terrain: req.body.terrain
     })
 
@@ -119,23 +119,42 @@ router.post("/confirm", getUsers, async (req, res, next) => {
         const notification = await Notification.find({ from: req.body.from })
         for (i = 0; i < notification.length; i++) {
             for (j = 0; j < notification[i].to.length; j++) {
-                if (notification[i].to[j] == req.body.to && notification[i].type == "Friend request") {
+                if (notification[i].to[j] == req.body.to) {
+
+                    if (notification[i].typeNotification == "Friend request" && !notification[i].accept) {
+                        res.user1.friends.push(req.body.to)
+                        res.user2.friends.push(req.body.from)
+                        const done = await res.user1.save();
+                        const aaa = await res.user2.save();
+
+                        console.log("MY notif" + notification[i])
+                        const dbone = await notification[i].save();
+
+                        return res.status(201).json({ aaa, done, dbone });
+                    }
                     notification[i].accept = true;
+                    if (notification[i].typeNotification == "Join request") {
 
-                    res.user1.friends.push(req.body.to)
-                    res.user2.friends.push(req.body.from)
-                    const done = await res.user1.save();
-                    const aaa = await res.user2.save();
+                        console.log("req.body.from : " + req.body.from)
+                        const team = await Team.findById(res.user2.team)
+                        console.log(team + " i'am a team BOIIIIIIII");
+                        team.players.push(req.body.from)
 
-                    console.log("MY notif" + notification[i])
-                    const dbone = await notification[i].save();
+                        const newTeam = await team.save()
+                        console.log("Ena team jdida !  :   >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> " + newTeam);
 
-                    return res.status(201).json({ aaa, done, dbone });
+                        console.log("MY notif" + notification[i])
+                        const dbone = await notification[i].save();
 
+                        return res.status(201).json({ newTeam, dbone });
+                        // res.user2.friends.push(req.body.from)
+                    }
+
+
+                    return res.status(201).json({ dbone });
 
                 }
             }
-
         }
 
     } catch (error) {
@@ -158,14 +177,15 @@ router.post("/confirm-join", getUsers, async (req, res, next) => {
                     const team = await Team.findById(res.user2.team)
                     console.log(team + " i'am a team BOIIIIIIII");
                     team.players.push(req.body.from)
-
+                    res.user1.team.push(team)
                     const newTeam = await team.save()
+                    const newUser = await res.user1.save()
                     console.log("Ena team jdida !  :   >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> " + newTeam);
 
                     console.log("MY notif" + notification[i])
                     const dbone = await notification[i].save();
 
-                    return res.status(201).json({ newTeam, dbone });
+                    return res.status(201).json({ newUser, newTeam, dbone });
                 }
             }
         }
@@ -212,7 +232,7 @@ router.delete("/deleteMYnotif", async (req, res) => {
         const notification = await Notification.find({ from: req.body.from })
         for (i = 0; i < notification.length; i++) {
             for (j = 0; j < notification[i].to.length; j++) {
-                if ((notification[i].to[j] == req.body.to && notification[i].type == "Match request")) {
+                if ((notification[i].to[j] == req.body.to && notification[i].typeNotification == "Match request")) {
                     const aaa = await notification[i].remove()
                     return res.status(200).json({ message: 'Deleted match' })
                 }
@@ -247,7 +267,7 @@ async function getNotificationFriend(req, res, next) {
             if (notification[i].from == req.body.to || notification[i].from == req.body.from)
                 for (j = 0; j < notification[i].to.length; j++) {
                     if (notification[i].to[j] == req.body.to || notification[i].to[j] == req.body.from) {
-                        if ((notification[i].accept && notification[i].type == "Friend request") || !notification[i].accept) {
+                        if ((notification[i].accept && notification[i].typeNotification == "Friend request") || !notification[i].accept) {
                             return res.status(401).json("duplicate")
                         }
                     }
@@ -270,7 +290,7 @@ async function getNotificationJoin(req, res, next) {
             if (notification[i].from == req.body.to || notification[i].from == req.body.from)
                 for (j = 0; j < notification[i].to.length; j++) {
                     if (notification[i].to[j] == req.body.to || notification[i].to[j] == req.body.from) {
-                        if ((notification[i].accept && notification[i].type == "Join request") || !notification[i].accept) {
+                        if ((notification[i].accept && notification[i].typeNotification == "Join request") || !notification[i].accept) {
                             return res.status(401).json("duplicate")
                         }
                     }
@@ -314,7 +334,7 @@ async function getNotificationMatch(req, res, next) {
             if (notification[i].from == req.body.to || notification[i].from == req.body.from)
                 for (j = 0; j < notification[i].to.length; j++) {
                     if (notification[i].to[j] == req.body.to || notification[i].to[j] == req.body.from) {
-                        if ((notification[i].accept && notification[i].type == "Match request") || !notification[i].accept) {
+                        if ((notification[i].accept && notification[i].typeNotification == "Match request") || !notification[i].accept) {
                             return res.status(401).json("duplicate")
                         }
                     }

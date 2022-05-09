@@ -293,6 +293,10 @@ router.post("/add-tournament", multer, async (req, res, next) => {
     }
 })
 
+
+
+
+
 /* Updating One */
 router.patch("/:id/:idt", multer, getTournament, async (req, res) => {
     console.log(req.params.idt)
@@ -327,12 +331,50 @@ router.patch("/:id/:idt", multer, getTournament, async (req, res) => {
     }
 })
 
+/* Generate One Tournament */
+router.patch("/generate/new/:id", multer, getTournament, async (req, res, next) => {
 
-//Generate tournament
-router.patch("/:idtournament", multer, getTournament, async (req, res, next) => {
 
+    console.log(req.params.id);
+
+    res.tournament.matchs = []
+    var listMatch = []
+    const myTournamentPlayers = []
+
+    for (let index = 0; index < res.tournament.participants.length; index++) {
+        if (res.tournament.participants[index].isEliminated == false) {
+            myTournamentPlayers.push(res.tournament.participants[index])
+        }
+    }
+
+    for (let i = 0; i < myTournamentPlayers.length; i++) {
+        console.log(myTournamentPlayers.length + "Ena taille ! ");
+        const match = new Match({
+            teamA: myTournamentPlayers.pop().team,
+            teamB: myTournamentPlayers.pop().team,
+
+        })
+
+        await match.save()
+
+        res.tournament.matchs.push(match)
+        listMatch.push(match)
+
+
+
+
+    }
+    res.tournament.matchs = listMatch
+
+    console.log(res.tournament);
+    try {
+        const updatedTournament = await res.tournament.save()
+        res.json({ tournament: updatedTournament })
+    } catch (error) {
+        res.status(400).json({ message: error.message })
+
+    }
 })
-
 
 /* Deleting One */
 router.delete("/:id", getTournament, async (req, res) => {
@@ -354,7 +396,7 @@ async function getTournament(req, res, next) {
     try {
         tournament = await Tournament.findById(req.params.id)
         if (tournament == null) {
-            return res.status(404).json({ message: 'Cannot find team' })
+            return res.status(404).json({ message: 'Cannot find Tournament' })
         }
     } catch (error) {
         return res.status(500).json({ message: error.message })
@@ -363,6 +405,7 @@ async function getTournament(req, res, next) {
     res.tournament = tournament
     next()
 }
+
 router.post('/addtournament', (req, res, next) => {
     req.body.place = mongoose.Types.ObjectId(req.body.place)
     req.body.owner = mongoose.Types.ObjectId(req.body.owner)
