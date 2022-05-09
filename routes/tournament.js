@@ -245,7 +245,7 @@ var mongoose = require('mongoose');
 /* GET All Teams. */
 router.get('/', async function (req, res, next) {
     try {
-        const tournaments = await Tournament.find()
+        const tournaments = await Tournament.find().populate("owner").populate("place").populate("matchs")
         res.json(tournaments)
     } catch (error) {
         res.status(500).json({ message: error.message })
@@ -294,59 +294,45 @@ router.post("/add-tournament", multer, async (req, res, next) => {
 })
 
 /* Updating One */
-router.patch("/:id", multer, getTournament, async (req, res) => {
-    if (req.body.players != null) {
-        res.team.players = req.body.players
-    }
-    if (req.body.captain != null) {
-        res.team.captain = req.body.captain
-    }
-    if (req.body.typeSport != null) {
-        res.team.typeSport = req.body.typeSport
-    }
-    try {
-        const updatedTeam = await res.user.save()
-        res.json({ team: updatedTeam })
-    } catch (error) {
-        res.status(400).json({ message: error.message })
+router.patch("/:id/:idt", multer, getTournament, async (req, res) => {
+    console.log(req.params.idt)
+    console.log(req.params.id)
 
-    }
-})
+    if (req.params.idt != null) {
+        if (res.tournament.participants == null) {
+            const participant = {
+                team: req.params.idt,
+                points: 0,
+                isEliminated: false,
+            };
+            res.tournament.participants = participant
+            await res.tournament.save()
+        } else {
+            for (i = 0; i < res.tournament.participants.length; i++) {
+                if (req.params.idt == res.tournament.participants[i].team) {
+                    return res.status(403).json('duplicate')
+                }
+            }
+            console.log("on vajouter");
+            const participant = {
+                team: req.params.idt,
+                points: 0,
+                isEliminated: false
+            };
 
-/* Updating One */
-router.patch("/generate/:id", multer, getTournament, async (req, res) => {
-    res.tournament.matchs = []
-    const myTournamentPlayers = []
-
-    for (let index = 0; index < res.tournament.participants.length; index++) {
-        if (res.tournament.participants[index].isEliminated == false) {
-            myTournamentPlayers.push(res.tournament.participants[index])
+            res.tournament.participants.push(participant)
+            await res.tournament.save()
+            return res.status(200).json("ok")
         }
     }
-
-    for (let i = 0; i < myTournamentPlayers.length; i++) {
-        console.log(myTournamentPlayers.length + "Ena taille ! ");
-        const match = new Match({
-            teamA: myTournamentPlayers.pop().team,
-            teamB: myTournamentPlayers.pop().team,
-
-        })
-
-
-        res.tournament.matchs.push(match)
-
-    }
-
-
-    console.log(res.tournament);
-    // try {
-    //     const updatedTeam = await res.user.save()
-    //     res.json({ team: updatedTeam })
-    // } catch (error) {
-    //     res.status(400).json({ message: error.message })
-
-    // }
 })
+
+
+//Generate tournament
+router.patch("/:idtournament", multer, getTournament, async (req, res, next) => {
+
+})
+
 
 /* Deleting One */
 router.delete("/:id", getTournament, async (req, res) => {
@@ -378,9 +364,8 @@ async function getTournament(req, res, next) {
     next()
 }
 router.post('/addtournament', (req, res, next) => {
-
-    req.body.owner = mongoose.Types.ObjectId(req.body.owner)
     req.body.place = mongoose.Types.ObjectId(req.body.place)
+    req.body.owner = mongoose.Types.ObjectId(req.body.owner)
     new Tournament(req.body).save().then(data => res.status(200).json(data))
         .catch(error => res.status(500).json(error));
 })

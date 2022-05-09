@@ -112,22 +112,34 @@ router.patch("/:id", multer, getTeam, async (req, res) => {
 })
 
 /* Leave One team */
-router.patch("/:id", multer, getTeam, async (req, res) => {
-    if (req.body.players != null) {
-        res.team.players = req.body.players
+router.patch("/leave/:id/:idplayer", multer, getTeam, async (req, res) => {
+
+    const playerLeaving = await Player.findById(req.params.idplayer).populate('team')
+
+    if (res.team.captain._id == playerLeaving.id) {
+        for (let i = 0; i < res.team.players.length; i++) {
+            for (let j = 0; j < res.team.players[i].team.length; j++) {
+                if (res.team.players[i].team[j].id == res.team.id) {
+                    delete res.team.players[i].team[j]
+                }
+            }
+        }
+
+        console.log("ena howa el capitain");
+
+        for (let index = 0; index < playerLeaving.team.length; index++) {
+            if (playerLeaving.team[index].id == res.team.id) {
+                delete playerLeaving.team[index]
+            }
+        }
+        // await res.team.remove()
     }
-    if (req.body.captain != null) {
-        res.team.captain = req.body.captain
-    }
-    if (req.body.typeSport != null) {
-        res.team.typeSport = req.body.typeSport
-    }
+
     try {
-        const updatedTeam = await res.user.save()
-        res.json({ team: updatedTeam })
+        // const updatedTeam = await res.user.save()
+        res.json(playerLeaving)
     } catch (error) {
         res.status(400).json({ message: error.message })
-
     }
 })
 /* Deleting One */

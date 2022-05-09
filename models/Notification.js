@@ -17,7 +17,7 @@ const notificationSchema = new mongoose.Schema({
         type: Date,
         default: Date.now
     },
-    type: {
+    typeNotification: {
         type: String
     },
     accept: {

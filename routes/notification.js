@@ -77,7 +77,7 @@ router.post("/join-request", getNotificationJoin, async (req, res, next) => {
         from: req.body.from,
         to: req.body.to,
         description: "Sent you a join request",
-        type: "Join request"
+        typeNotification: "Join request"
     })
 
     try {
@@ -119,41 +119,23 @@ router.post("/confirm", getUsers, async (req, res, next) => {
         const notification = await Notification.find({ from: req.body.from })
         for (i = 0; i < notification.length; i++) {
             for (j = 0; j < notification[i].to.length; j++) {
-                if (notification[i].to[j] == req.body.to) {
+                if (notification[i].to[j] == req.body.to && notification[i].type == "Friend request") {
                     notification[i].accept = true;
-                    if (notification[i].type == "Friend request") {
-                        res.user1.friends.push(req.body.to)
-                        res.user2.friends.push(req.body.from)
-                        const done = await res.user1.save();
-                        const aaa = await res.user2.save();
 
-                        console.log("MY notif" + notification[i])
-                        const dbone = await notification[i].save();
+                    res.user1.friends.push(req.body.to)
+                    res.user2.friends.push(req.body.from)
+                    const done = await res.user1.save();
+                    const aaa = await res.user2.save();
 
-                        return res.status(201).json({ aaa, done, dbone });
-                    }
-                    if (notification[i].type == "Join request") {
+                    console.log("MY notif" + notification[i])
+                    const dbone = await notification[i].save();
 
-                        console.log("req.body.from : " + req.body.from)
-                        const team = await Team.findById(res.user2.team)
-                        console.log(team + " i'am a team BOIIIIIIII");
-                        team.players.push(req.body.from)
+                    return res.status(201).json({ aaa, done, dbone });
 
-                        const newTeam = await team.save()
-                        console.log("Ena team jdida !  :   >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> " + newTeam);
-
-                        console.log("MY notif" + notification[i])
-                        const dbone = await notification[i].save();
-
-                        return res.status(201).json({ newTeam, dbone });
-                        // res.user2.friends.push(req.body.from)
-                    }
-
-
-                    return res.status(201).json({ dbone });
 
                 }
             }
+
         }
 
     } catch (error) {
@@ -169,27 +151,21 @@ router.post("/confirm-join", getUsers, async (req, res, next) => {
         const notification = await Notification.find({ from: req.body.from })
         for (i = 0; i < notification.length; i++) {
             for (j = 0; j < notification[i].to.length; j++) {
-                if (notification[i].to[j] == req.body.to) {
+                if (notification[i].to[j] == req.body.to && notification[i].typeNotification == "Join request" && notification[i].accept == false) {
                     notification[i].accept = true;
-                    if (notification[i].type == "Join request") {
 
-                        console.log("req.body.from : " + req.body.from)
-                        const team = await Team.findById(res.user2.team)
-                        console.log(team + " i'am a team BOIIIIIIII");
-                        team.players.push(req.body.from)
+                    console.log("req.body.from : " + req.body.from)
+                    const team = await Team.findById(res.user2.team)
+                    console.log(team + " i'am a team BOIIIIIIII");
+                    team.players.push(req.body.from)
 
-                        const newTeam = await team.save()
-                        console.log("Ena team jdida !  :   >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> " + newTeam);
+                    const newTeam = await team.save()
+                    console.log("Ena team jdida !  :   >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> " + newTeam);
 
-                        console.log("MY notif" + notification[i])
-                        const dbone = await notification[i].save();
-
-                        return res.status(201).json({ newTeam, dbone });
-                        // res.user2.friends.push(req.body.from)
-                    }
                     console.log("MY notif" + notification[i])
-                    // const dbone = await notification[i].save();
-                    return res.status(201).json({ done });
+                    const dbone = await notification[i].save();
+
+                    return res.status(201).json({ newTeam, dbone });
                 }
             }
         }
